@@ -1,0 +1,11 @@
+//Сделать депозит юзером
+POST http://localhost:4111/api/v1/accounts/deposit
+Content-Type: application/json
+Authorization: Basic cGF2ZWwxOTkzOjAxMDIwM3FRIQ==
+
+{
+  "id": 1,
+  "balance": 10000
+}
+
+###
