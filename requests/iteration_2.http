@@ -1,7 +1,7 @@
 //Сделать депозит юзером
 POST http://localhost:4111/api/v1/accounts/deposit
 Content-Type: application/json
-Authorization: Basic cGF2ZWwxOTkzOjAxMDIwM3FRIQ==
+Authorization: Basic YWxleDE5OTM6MDEwMjAzcVEh
 
 {
   "id": 1,
@@ -9,3 +9,193 @@ Authorization: Basic cGF2ZWwxOTkzOjAxMDIwM3FRIQ==
 }
 
 ###
+// Делаем депозит более допустимого(6000) Найден баг
+POST http://localhost:4111/api/v1/accounts/deposit
+Content-Type: application/json
+Authorization: Basic YWxleDE5OTM6MDEwMjAzcVEh
+
+{
+  "id": 1,
+  "balance": 5001
+}
+
+###
+// Делаем депозит Отрицательной суммой
+POST http://localhost:4111/api/v1/accounts/deposit
+Content-Type: application/json
+Authorization: Basic YWxleDE5OTM6MDEwMjAzcVEh
+
+{
+"id": 1,
+"balance": -6000
+}
+
+###
+// Делаем депозит с нулевой суммой
+POST http://localhost:4111/api/v1/accounts/deposit
+Content-Type: application/json
+Authorization: Basic YWxleDE5OTM6MDEwMjAzcVEh
+
+{
+  "id": 1,
+  "balance": 0
+}
+
+###
+// Делаем депозит в чужой аккаунт
+POST http://localhost:4111/api/v1/accounts/deposit
+Content-Type: application/json
+Authorization: Basic YWxleDE5OTM6MDEwMjAzcVEh
+
+{
+  "id": 2,
+  "balance": 1000
+}
+
+###
+// Делаем депозит в несуществующий аккаунт
+POST http://localhost:4111/api/v1/accounts/deposit
+Content-Type: application/json
+Authorization: Basic YWxleDE5OTM6MDEwMjAzcVEh
+
+{
+  "id": 3,
+  "balance": 1000
+}
+
+###
+// Перевод денег с одного аккаунта на другой
+POST http://localhost:4111/api/v1/accounts/transfer
+Content-Type: application/json
+Authorization: Basic YWxleDE5OTM6MDEwMjAzcVEh
+
+{
+  "senderAccountId": 1,
+  "receiverAccountId": 2,
+  "amount": 500
+}
+
+###
+// Перевод денег с одного аккаунта на другой выше максимальной суммы. Найден баг
+POST http://localhost:4111/api/v1/accounts/transfer
+Content-Type: application/json
+Authorization: Basic YWxleDE5OTM6MDEwMjAzcVEh
+
+{
+  "senderAccountId": 1,
+  "receiverAccountId": 2,
+  "amount": 10001
+}
+
+###
+// Перевод денег с одного аккаунта на другой с нулевым переводом
+POST http://localhost:4111/api/v1/accounts/transfer
+Content-Type: application/json
+Authorization: Basic YWxleDE5OTM6MDEwMjAzcVEh
+
+{
+  "senderAccountId": 1,
+  "receiverAccountId": 2,
+  "amount": 0
+}
+
+###
+// Перевод денег с одного аккаунта на другой(отрицательная сумма перевода)
+POST http://localhost:4111/api/v1/accounts/transfer
+Content-Type: application/json
+Authorization: Basic YWxleDE5OTM6MDEwMjAzcVEh
+
+{
+  "senderAccountId": 1,
+  "receiverAccountId": 2,
+  "amount": -1000
+}
+
+###
+// Перевод денег с одного аккаунта на другой(больше суммы на счету)
+POST http://localhost:4111/api/v1/accounts/transfer
+Content-Type: application/json
+Authorization: Basic YWxleDE5OTM6MDEwMjAzcVEh
+
+{
+  "senderAccountId": 1,
+  "receiverAccountId": 2,
+  "amount": 10000
+}
+
+###
+// Перевод денег между своими аккаунтами
+POST http://localhost:4111/api/v1/accounts/transfer
+Content-Type: application/json
+Authorization: Basic YWxleDE5OTM6MDEwMjAzcVEh
+
+{
+  "senderAccountId": 1,
+  "receiverAccountId": 2,
+  "amount": 500
+}
+
+###
+// Перевод денег со своего аккаунта на чужой
+POST http://localhost:4111/api/v1/accounts/transfer
+Content-Type: application/json
+Authorization: Basic YWxleDE5OTM6MDEwMjAzcVEh
+
+{
+  "senderAccountId": 1,
+  "receiverAccountId": 3,
+  "amount": 500
+}
+
+###
+// Валидное Изменение имени пользователя
+PUT http://localhost:4111//api/v1/customer/profile
+Content-Type: application/json
+Authorization: Basic YWxleDE5OTM6MDEwMjAzcVEh
+
+{
+  "name": "Alex_Petrov"
+}
+
+###
+// Изменение имени пользователя(пустая строка). Найден Баг
+PUT http://localhost:4111//api/v1/customer/profile
+Content-Type: application/json
+Authorization: Basic YWxleDE5OTM6MDEwMjAzcVEh
+
+{
+  "name": ""
+}
+
+###
+// Изменение имени пользователя(Имеются цифры). Найден Баг
+PUT http://localhost:4111//api/v1/customer/profile
+Content-Type: application/json
+Authorization: Basic YWxleDE5OTM6MDEwMjAzcVEh
+
+{
+  "name": "5414141alex"
+}
+
+###
+// Изменение имени пользователя(Имеются спецсимволы). Найден Баг
+PUT http://localhost:4111//api/v1/customer/profile
+Content-Type: application/json
+Authorization: Basic YWxleDE5OTM6MDEwMjAzcVEh
+
+{
+  "name": "5414141alex$$$"
+}
+
+###
+// Изменение имени пользователя(Нет Пробела). Найден Баг
+PUT http://localhost:4111//api/v1/customer/profile
+Content-Type: application/json
+Authorization: Basic YWxleDE5OTM6MDEwMjAzcVEh
+
+{
+  "name": "alexpetrov"
+}
+
+
+
