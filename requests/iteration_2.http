@@ -9,14 +9,25 @@ Authorization: Basic YWxleDE5OTM6MDEwMjAzcVEh
 }
 
 ###
-// Делаем депозит более допустимого(6000) Найден баг
+// Делаем депозит более допустимого. Найден баг
 POST http://localhost:4111/api/v1/accounts/deposit
 Content-Type: application/json
 Authorization: Basic YWxleDE5OTM6MDEwMjAzcVEh
 
 {
   "id": 1,
-  "balance": 5001
+  "balance": 5000.01
+}
+
+###
+// Делаем допустимый депозит. Граничное значение
+POST http://localhost:4111/api/v1/accounts/deposit
+Content-Type: application/json
+Authorization: Basic YWxleDE5OTM6MDEwMjAzcVEh
+
+{
+  "id": 1,
+  "balance": 4999.99
 }
 
 ###
@@ -27,7 +38,18 @@ Authorization: Basic YWxleDE5OTM6MDEwMjAzcVEh
 
 {
 "id": 1,
-"balance": -6000
+"balance": -0.01
+}
+
+###
+// Делаем допустимый депозит. Граничное значение
+POST http://localhost:4111/api/v1/accounts/deposit
+Content-Type: application/json
+Authorization: Basic YWxleDE5OTM6MDEwMjAzcVEh
+
+{
+  "id": 1,
+  "balance": 0.01
 }
 
 ###
@@ -76,6 +98,30 @@ Authorization: Basic YWxleDE5OTM6MDEwMjAzcVEh
 }
 
 ###
+// Перевод денег с одного аккаунта на другой. Граничные значения
+POST http://localhost:4111/api/v1/accounts/transfer
+Content-Type: application/json
+Authorization: Basic YWxleDE5OTM6MDEwMjAzcVEh
+
+{
+  "senderAccountId": 1,
+  "receiverAccountId": 2,
+  "amount": 9999.99
+}
+
+###
+// Перевод денег с одного аккаунта на другой. Граничные значения
+POST http://localhost:4111/api/v1/accounts/transfer
+Content-Type: application/json
+Authorization: Basic YWxleDE5OTM6MDEwMjAzcVEh
+
+{
+  "senderAccountId": 1,
+  "receiverAccountId": 2,
+  "amount":  0.01
+}
+
+###
 // Перевод денег с одного аккаунта на другой выше максимальной суммы. Найден баг
 POST http://localhost:4111/api/v1/accounts/transfer
 Content-Type: application/json
@@ -84,7 +130,7 @@ Authorization: Basic YWxleDE5OTM6MDEwMjAzcVEh
 {
   "senderAccountId": 1,
   "receiverAccountId": 2,
-  "amount": 10001
+  "amount": 10000.01
 }
 
 ###
@@ -108,7 +154,7 @@ Authorization: Basic YWxleDE5OTM6MDEwMjAzcVEh
 {
   "senderAccountId": 1,
   "receiverAccountId": 2,
-  "amount": -1000
+  "amount": -0.01
 }
 
 ###
