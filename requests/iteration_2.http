@@ -195,12 +195,12 @@ Authorization: Basic YWxleDE5OTM6MDEwMjAzcVEh
 
 ###
 // Валидное Изменение имени пользователя
-PUT http://localhost:4111//api/v1/customer/profile
+PUT http://localhost:4111/api/v1/customer/profile
 Content-Type: application/json
 Authorization: Basic YWxleDE5OTM6MDEwMjAzcVEh
 
 {
-  "name": "Alex_Petrov"
+  "name": "Alex Petrov"
 }
 
 ###
