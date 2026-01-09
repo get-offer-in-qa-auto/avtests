@@ -28,6 +28,8 @@ public class ChangeNameTest {
     }
     @Test
     public void userCanChangeName(){
+        String newName = "Alex Petrov";
+        
         given()
                 .contentType(ContentType.JSON)
                 .accept(ContentType.JSON)
@@ -41,11 +43,33 @@ public class ChangeNameTest {
                 .then()
                 .assertThat()
                 .statusCode(HttpStatus.SC_OK);
-
+        
+        // Проверяем через GET, что имя изменилось
+        given()
+                .contentType(ContentType.JSON)
+                .accept(ContentType.JSON)
+                .header("Authorization", "Basic a2F0ZTIwMDAxMTE6S2F0ZTIwMDAj")
+                .get("http://localhost:4111/api/v1/customer/profile")
+                .then()
+                .assertThat()
+                .statusCode(HttpStatus.SC_OK)
+                .body("name", Matchers.equalTo(newName));
     }
     @ParameterizedTest
     @MethodSource("invalidName")
     public void userCanNotChangeToInvalidName(String name, String errorType){
+        // Получаем имя до попытки изменения
+        String nameBefore = given()
+                .contentType(ContentType.JSON)
+                .accept(ContentType.JSON)
+                .header("Authorization", "Basic a2F0ZTIwMDAxMTE6S2F0ZTIwMDAj")
+                .get("http://localhost:4111/api/v1/customer/profile")
+                .then()
+                .assertThat()
+                .statusCode(HttpStatus.SC_OK)
+                .extract()
+                .path("name");
+        
         String requestBody = String.format(Locale.ROOT, """
                 {
                 
@@ -62,6 +86,17 @@ public class ChangeNameTest {
                 .assertThat()
                 .statusCode(HttpStatus.SC_BAD_REQUEST)
                 .body(Matchers.equalTo(errorType));
+        
+        // Проверяем через GET, что имя НЕ изменилось
+        given()
+                .contentType(ContentType.JSON)
+                .accept(ContentType.JSON)
+                .header("Authorization", "Basic a2F0ZTIwMDAxMTE6S2F0ZTIwMDAj")
+                .get("http://localhost:4111/api/v1/customer/profile")
+                .then()
+                .assertThat()
+                .statusCode(HttpStatus.SC_OK)
+                .body("name", Matchers.equalTo(nameBefore));
     }
     public static Stream<Arguments> invalidName(){
         return Stream.of(
