@@ -17,6 +17,7 @@ import java.util.Map;
 import java.util.stream.Stream;
 import org.junit.jupiter.params.provider.Arguments;
 import io.restassured.path.json.JsonPath;
+import static org.junit.jupiter.api.Assertions.*;
 
 import static io.restassured.RestAssured.given;
 
@@ -26,25 +27,56 @@ public class MakeTransactionTest {
         RestAssured.filters(
                 List.of(new RequestLoggingFilter(), new ResponseLoggingFilter()));
     }
+    
+    private double getAccountBalance(int accountId) {
+        List<Map<String, Object>> accounts = getAllAccounts();
+        return accounts.stream()
+                .filter(acc -> {
+                    Object id = acc.get("id");
+                    return id != null && ((Number) id).intValue() == accountId;
+                })
+                .findFirst()
+                .map(acc -> ((Number) acc.get("balance")).doubleValue())
+                .orElse(0.0);
+    }
+    
+    private List<Map<String, Object>> getAllAccounts() {
+        String response = given()
+                .contentType(ContentType.JSON)
+                .accept(ContentType.JSON)
+                .header("Authorization", "Basic a2F0ZTIwMDAxMTE6S2F0ZTIwMDAj")
+                .get("http://localhost:4111/api/v1/customer/accounts")
+                .then()
+                .extract()
+                .asString();
+        return new JsonPath(response).getList("$");
+    }
     @ParameterizedTest
     @MethodSource("validTransactionAmount")
     public void userCanTransferAmount(double amount){
-        String requestBody = String.format(Locale.ROOT, """
-                {
-                "senderAccountId": 1,
-                "receiverAccountId": 2,
-                "amount": %.2f
-                }
-                """, amount);
+        double senderBalanceBefore = getAccountBalance(1);
+        double receiverBalanceBefore = getAccountBalance(2);
+        
         given()
                 .contentType(ContentType.JSON)
                 .accept(ContentType.JSON)
                 .header("Authorization", "Basic a2F0ZTIwMDAxMTE6S2F0ZTIwMDAj")
-                .body(requestBody)
+                .body(String.format(Locale.ROOT, """
+                        {
+                        "senderAccountId": 1,
+                        "receiverAccountId": 2,
+                        "amount": %.2f
+                        }
+                        """, amount))
                 .post("http://localhost:4111/api/v1/accounts/transfer")
                 .then()
                 .assertThat()
                 .statusCode(HttpStatus.SC_OK);
+        
+        assertEquals(senderBalanceBefore - amount, getAccountBalance(1), 0.01, 
+            "Sender balance should decrease");
+        assertEquals(receiverBalanceBefore + amount, getAccountBalance(2), 0.01, 
+            "Receiver balance should increase");
     }
     public static Stream<Arguments> validTransactionAmount(){
         return Stream.of(
@@ -56,23 +88,30 @@ public class MakeTransactionTest {
     @ParameterizedTest
     @MethodSource("invalidAmountTransfer")
     public void userCannotTransferInvalidAmount(double amount, String errorType){
-        String requestBody = String.format(Locale.ROOT, """
-               {
-                "senderAccountId": 1,
-                "receiverAccountId": 2,
-                "amount": %.2f
-                }
-               """, amount);
+        double senderBalanceBefore = getAccountBalance(1);
+        double receiverBalanceBefore = getAccountBalance(2);
+        
         given()
                 .contentType(ContentType.JSON)
                 .accept(ContentType.JSON)
                 .header("Authorization", "Basic a2F0ZTIwMDAxMTE6S2F0ZTIwMDAj")
-                .body(requestBody)
+                .body(String.format(Locale.ROOT, """
+                       {
+                        "senderAccountId": 1,
+                        "receiverAccountId": 2,
+                        "amount": %.2f
+                        }
+                       """, amount))
                 .post("http://localhost:4111/api/v1/accounts/transfer")
                 .then()
                 .assertThat()
                 .statusCode(HttpStatus.SC_BAD_REQUEST)
                 .body(Matchers.equalTo(errorType));
+        
+        assertEquals(senderBalanceBefore, getAccountBalance(1), 0.01, 
+            "Sender balance should not have changed");
+        assertEquals(receiverBalanceBefore, getAccountBalance(2), 0.01, 
+            "Receiver balance should not have changed");
     }
     public static Stream<Arguments> invalidAmountTransfer(){
         return Stream.of(
@@ -84,22 +123,30 @@ public class MakeTransactionTest {
     @ParameterizedTest
     @MethodSource("transferToValidAccount")
     public void userCanTransferToDifferentAccount(int account){
-        String requestBody = String.format(Locale.ROOT, """
-               {
-                "senderAccountId": 1,
-                "receiverAccountId": %d,
-                "amount": 500
-                }
-               """, account);
+        double transferAmount = 500.0;
+        double senderBalanceBefore = getAccountBalance(1);
+        double receiverBalanceBefore = getAccountBalance(account);
+        
         given()
                 .contentType(ContentType.JSON)
                 .accept(ContentType.JSON)
                 .header("Authorization","Basic a2F0ZTIwMDAxMTE6S2F0ZTIwMDAj")
-                .body(requestBody)
+                .body(String.format(Locale.ROOT, """
+                       {
+                        "senderAccountId": 1,
+                        "receiverAccountId": %d,
+                        "amount": 500
+                        }
+                       """, account))
                 .post("http://localhost:4111/api/v1/accounts/transfer")
                 .then()
                 .assertThat()
                 .statusCode(HttpStatus.SC_OK);
+        
+        assertEquals(senderBalanceBefore - transferAmount, getAccountBalance(1), 0.01, 
+            "Sender balance should decrease");
+        assertEquals(receiverBalanceBefore + transferAmount, getAccountBalance(account), 0.01, 
+            "Receiver balance should increase");
     }
     public static Stream<Arguments> transferToValidAccount(){
         return Stream.of(
@@ -109,54 +156,30 @@ public class MakeTransactionTest {
 
     @Test
     public void userCannotTransferMoreThanAccountBalance(){
-        String accountsResponse =
-                given()
-                .contentType(ContentType.JSON)
-                .accept(ContentType.JSON)
-                .header("Authorization", "Basic a2F0ZTIwMDAxMTE6S2F0ZTIwMDAj")
-                .get("http://localhost:4111/api/v1/customer/accounts")
-                .then()
-                .assertThat()
-                .statusCode(HttpStatus.SC_OK)
-                .extract()
-                .asString();
-
-        JsonPath jsonPath = new JsonPath(accountsResponse);
-        List<Map<String, Object>> accounts = jsonPath.getList("$");
+        double senderBalanceBefore = getAccountBalance(1);
+        double receiverBalanceBefore = getAccountBalance(2);
+        double transferAmount = senderBalanceBefore + 100.0;
         
-        double accountBalance = 0.0;
-        for (Map<String, Object> account : accounts) {
-            Object id = account.get("id");
-            if (id != null) {
-                int accountId = id instanceof Number ? ((Number) id).intValue() : Integer.parseInt(id.toString());
-                if (accountId == 1) {
-                    Object balance = account.get("balance");
-                    if (balance instanceof Number) {
-                        accountBalance = ((Number) balance).doubleValue();
-                    }
-                    break;
-                }
-            }
-        }
-
-        // Пытаемся перевести сумму больше баланса
-        double transferAmount = accountBalance + 100.0;
-        String requestBody = String.format(Locale.ROOT, """
-               {
-                "senderAccountId": 1,
-                "receiverAccountId": 2,
-                "amount": %.2f
-                }
-               """, transferAmount);
         given()
                 .contentType(ContentType.JSON)
                 .accept(ContentType.JSON)
                 .header("Authorization", "Basic a2F0ZTIwMDAxMTE6S2F0ZTIwMDAj")
-                .body(requestBody)
+                .body(String.format(Locale.ROOT, """
+                       {
+                        "senderAccountId": 1,
+                        "receiverAccountId": 2,
+                        "amount": %.2f
+                        }
+                       """, transferAmount))
                 .post("http://localhost:4111/api/v1/accounts/transfer")
                 .then()
                 .assertThat()
                 .statusCode(HttpStatus.SC_BAD_REQUEST)
                 .body(Matchers.equalTo("Invalid transfer: insufficient funds or invalid accounts"));
+        
+        assertEquals(senderBalanceBefore, getAccountBalance(1), 0.01, 
+            "Sender balance should not have changed");
+        assertEquals(receiverBalanceBefore, getAccountBalance(2), 0.01, 
+            "Receiver balance should not have changed");
     }
 }

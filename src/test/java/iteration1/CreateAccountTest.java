@@ -5,8 +5,10 @@ import io.restassured.filter.log.RequestLoggingFilter;
 import io.restassured.filter.log.ResponseLoggingFilter;
 import io.restassured.http.ContentType;
 import org.apache.http.HttpStatus;
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.List;
 
@@ -56,10 +58,25 @@ public class CreateAccountTest {
                 .extract()
                 .header("Authorization");
     }
-        // создаем аккаунт(счет)
+    // создаем аккаунт(счет)
     @Test
-        public void userCanCreateAccount() {
-            given()
+    public void userCanCreateAccount() {
+        // Получаем количество аккаунтов до создания
+        int accountsCountBefore = given()
+                .header("Authorization", "Basic a2F0ZTIwMDAxMTE6S2F0ZTIwMDAj")
+                .contentType(ContentType.JSON)
+                .accept(ContentType.JSON)
+                .get("http://localhost:4111/api/v1/customer/accounts")
+                .then()
+                .assertThat()
+                .statusCode(HttpStatus.SC_OK)
+                .extract()
+                .jsonPath()
+                .getList("$")
+                .size();
+        
+        // Создаем аккаунт
+        given()
                 .header("Authorization", "Basic a2F0ZTIwMDAxMTE6S2F0ZTIwMDAj")
                 .contentType(ContentType.JSON)
                 .accept(ContentType.JSON)
@@ -68,7 +85,22 @@ public class CreateAccountTest {
                 .assertThat()
                 .statusCode(HttpStatus.SC_CREATED);
 
-        // запросить все аккаунты пользователя и проверить, что наш аккаунт там
-
+        // Запрашиваем все аккаунты пользователя и проверяем, что количество увеличилось
+        int accountsCountAfter = given()
+                .header("Authorization", "Basic a2F0ZTIwMDAxMTE6S2F0ZTIwMDAj")
+                .contentType(ContentType.JSON)
+                .accept(ContentType.JSON)
+                .get("http://localhost:4111/api/v1/customer/accounts")
+                .then()
+                .assertThat()
+                .statusCode(HttpStatus.SC_OK)
+                .extract()
+                .jsonPath()
+                .getList("$")
+                .size();
+        
+        // Проверяем, что количество аккаунтов увеличилось на 1
+        assertEquals(accountsCountBefore + 1, accountsCountAfter, 
+            "Account count should increase by 1 after creation");
     }
 }
