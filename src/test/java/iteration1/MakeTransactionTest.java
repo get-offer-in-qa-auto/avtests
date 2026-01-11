@@ -27,7 +27,7 @@ public class MakeTransactionTest {
         RestAssured.filters(
                 List.of(new RequestLoggingFilter(), new ResponseLoggingFilter()));
     }
-
+    
     private double getAccountBalance(int accountId) {
         List<Map<String, Object>> accounts = getAllAccounts();
         return accounts.stream()
@@ -39,7 +39,7 @@ public class MakeTransactionTest {
                 .map(acc -> ((Number) acc.get("balance")).doubleValue())
                 .orElse(0.0);
     }
-
+    
     private List<Map<String, Object>> getAllAccounts() {
         String response = given()
                 .contentType(ContentType.JSON)
@@ -56,7 +56,7 @@ public class MakeTransactionTest {
     public void userCanTransferAmount(double amount){
         double senderBalanceBefore = getAccountBalance(1);
         double receiverBalanceBefore = getAccountBalance(2);
-
+        
         given()
                 .contentType(ContentType.JSON)
                 .accept(ContentType.JSON)
@@ -72,11 +72,11 @@ public class MakeTransactionTest {
                 .then()
                 .assertThat()
                 .statusCode(HttpStatus.SC_OK);
-
-        assertEquals(senderBalanceBefore - amount, getAccountBalance(1), 0.01,
-                "Sender balance should decrease");
-        assertEquals(receiverBalanceBefore + amount, getAccountBalance(2), 0.01,
-                "Receiver balance should increase");
+        
+        assertEquals(senderBalanceBefore - amount, getAccountBalance(1), 0.01, 
+            "Sender balance should decrease");
+        assertEquals(receiverBalanceBefore + amount, getAccountBalance(2), 0.01, 
+            "Receiver balance should increase");
     }
     public static Stream<Arguments> validTransactionAmount(){
         return Stream.of(
@@ -90,7 +90,7 @@ public class MakeTransactionTest {
     public void userCannotTransferInvalidAmount(double amount, String errorType){
         double senderBalanceBefore = getAccountBalance(1);
         double receiverBalanceBefore = getAccountBalance(2);
-
+        
         given()
                 .contentType(ContentType.JSON)
                 .accept(ContentType.JSON)
@@ -107,11 +107,11 @@ public class MakeTransactionTest {
                 .assertThat()
                 .statusCode(HttpStatus.SC_BAD_REQUEST)
                 .body(Matchers.equalTo(errorType));
-
-        assertEquals(senderBalanceBefore, getAccountBalance(1), 0.01,
-                "Sender balance should not have changed");
-        assertEquals(receiverBalanceBefore, getAccountBalance(2), 0.01,
-                "Receiver balance should not have changed");
+        
+        assertEquals(senderBalanceBefore, getAccountBalance(1), 0.01, 
+            "Sender balance should not have changed");
+        assertEquals(receiverBalanceBefore, getAccountBalance(2), 0.01, 
+            "Receiver balance should not have changed");
     }
     public static Stream<Arguments> invalidAmountTransfer(){
         return Stream.of(
@@ -126,7 +126,7 @@ public class MakeTransactionTest {
         double transferAmount = 500.0;
         double senderBalanceBefore = getAccountBalance(1);
         double receiverBalanceBefore = getAccountBalance(account);
-
+        
         given()
                 .contentType(ContentType.JSON)
                 .accept(ContentType.JSON)
@@ -142,11 +142,11 @@ public class MakeTransactionTest {
                 .then()
                 .assertThat()
                 .statusCode(HttpStatus.SC_OK);
-
-        assertEquals(senderBalanceBefore - transferAmount, getAccountBalance(1), 0.01,
-                "Sender balance should decrease");
-        assertEquals(receiverBalanceBefore + transferAmount, getAccountBalance(account), 0.01,
-                "Receiver balance should increase");
+        
+        assertEquals(senderBalanceBefore - transferAmount, getAccountBalance(1), 0.01, 
+            "Sender balance should decrease");
+        assertEquals(receiverBalanceBefore + transferAmount, getAccountBalance(account), 0.01, 
+            "Receiver balance should increase");
     }
     public static Stream<Arguments> transferToValidAccount(){
         return Stream.of(
@@ -159,7 +159,7 @@ public class MakeTransactionTest {
         double senderBalanceBefore = getAccountBalance(1);
         double receiverBalanceBefore = getAccountBalance(2);
         double transferAmount = senderBalanceBefore + 100.0;
-
+        
         given()
                 .contentType(ContentType.JSON)
                 .accept(ContentType.JSON)
@@ -176,10 +176,10 @@ public class MakeTransactionTest {
                 .assertThat()
                 .statusCode(HttpStatus.SC_BAD_REQUEST)
                 .body(Matchers.equalTo("Invalid transfer: insufficient funds or invalid accounts"));
-
-        assertEquals(senderBalanceBefore, getAccountBalance(1), 0.01,
-                "Sender balance should not have changed");
-        assertEquals(receiverBalanceBefore, getAccountBalance(2), 0.01,
-                "Receiver balance should not have changed");
+        
+        assertEquals(senderBalanceBefore, getAccountBalance(1), 0.01, 
+            "Sender balance should not have changed");
+        assertEquals(receiverBalanceBefore, getAccountBalance(2), 0.01, 
+            "Receiver balance should not have changed");
     }
 }

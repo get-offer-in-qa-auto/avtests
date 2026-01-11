@@ -29,7 +29,7 @@ public class ChangeNameTest {
     @Test
     public void userCanChangeName(){
         String newName = "Alex Petrov";
-
+        
         given()
                 .contentType(ContentType.JSON)
                 .accept(ContentType.JSON)
@@ -43,7 +43,7 @@ public class ChangeNameTest {
                 .then()
                 .assertThat()
                 .statusCode(HttpStatus.SC_OK);
-
+        
         // Проверяем через GET, что имя изменилось
         given()
                 .contentType(ContentType.JSON)
@@ -69,7 +69,7 @@ public class ChangeNameTest {
                 .statusCode(HttpStatus.SC_OK)
                 .extract()
                 .path("name");
-
+        
         String requestBody = String.format(Locale.ROOT, """
                 {
                 
@@ -86,7 +86,7 @@ public class ChangeNameTest {
                 .assertThat()
                 .statusCode(HttpStatus.SC_BAD_REQUEST)
                 .body(Matchers.equalTo(errorType));
-
+        
         // Проверяем через GET, что имя НЕ изменилось
         given()
                 .contentType(ContentType.JSON)
