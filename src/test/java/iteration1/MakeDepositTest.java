@@ -5,7 +5,6 @@ import io.restassured.filter.log.RequestLoggingFilter;
 import io.restassured.filter.log.ResponseLoggingFilter;
 import io.restassured.http.ContentType;
 import org.apache.http.HttpStatus;
-import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -22,13 +21,13 @@ import static io.restassured.RestAssured.given;
 
 public class MakeDepositTest {
     private static final String AUTH_HEADER = "Basic a2F0ZTIwMDAxMTE6S2F0ZTIwMDAj";
-    
+
     @BeforeAll
     public static void setupRestAssured(){
         RestAssured.filters(
                 List.of(new RequestLoggingFilter(), new ResponseLoggingFilter()));
     }
-    
+
     private double getAccountBalance(int accountId) {
         List<Map<String, Object>> accounts = getAllAccounts();
         return accounts.stream()
@@ -40,7 +39,7 @@ public class MakeDepositTest {
                 .map(acc -> ((Number) acc.get("balance")).doubleValue())
                 .orElse(0.0);
     }
-    
+
     private List<Map<String, Object>> getAllAccounts() {
         String response = given()
                 .contentType(ContentType.JSON)
@@ -56,7 +55,7 @@ public class MakeDepositTest {
     @MethodSource("validBalanceData")
     public void userCanMakeDeposit(double balance){
         double balanceBefore = getAccountBalance(1);
-        
+
         given()
                 .contentType(ContentType.JSON)
                 .accept(ContentType.JSON)
@@ -71,15 +70,15 @@ public class MakeDepositTest {
                 .then()
                 .assertThat()
                 .statusCode(HttpStatus.SC_OK);
-        
-        assertEquals(balanceBefore + balance, getAccountBalance(1), 0.01, 
-            "Balance should increase by deposit amount");
+
+        assertEquals(balanceBefore + balance, getAccountBalance(1), 0.01,
+                "Balance should increase by deposit amount");
     }
     @ParameterizedTest
     @MethodSource("invalidBalanceData")
     public void userCannotDepositInvalidBalance(double balance, String errorValue){
         double balanceBefore = getAccountBalance(1);
-        
+
         given()
                 .contentType(ContentType.JSON)
                 .accept(ContentType.JSON)
@@ -91,7 +90,7 @@ public class MakeDepositTest {
                         }
                         """, balance))
                 .post("http://localhost:4111/api/v1/accounts/deposit");
-        
+
         assertEquals(balanceBefore, getAccountBalance(1), 0.01, "Balance should not have changed");
     }
     @ParameterizedTest
@@ -103,7 +102,7 @@ public class MakeDepositTest {
                     Object id = acc.get("id");
                     return id != null && ((Number) id).intValue() == account;
                 });
-        
+
         if (accountBelongsToUser) {
             double balanceBefore = getAccountBalance(account);
             given()
@@ -117,11 +116,11 @@ public class MakeDepositTest {
                             }
                             """, account))
                     .post("http://localhost:4111/api/v1/accounts/deposit");
-            assertEquals(balanceBefore + 1000, getAccountBalance(account), 0.01, 
-                "Balance should increase for user's own account");
+            assertEquals(balanceBefore + 1000, getAccountBalance(account), 0.01,
+                    "Balance should increase for user's own account");
             return;
         }
-        
+
         given()
                 .contentType(ContentType.JSON)
                 .accept(ContentType.JSON)
@@ -133,19 +132,19 @@ public class MakeDepositTest {
                         }
                         """, account))
                 .post("http://localhost:4111/api/v1/accounts/deposit");
-        
+
         List<Map<String, Object>> accountsAfter = getAllAccounts();
-        assertEquals(accountsBefore.size(), accountsAfter.size(), 
-            "Number of accounts should not change");
-        
+        assertEquals(accountsBefore.size(), accountsAfter.size(),
+                "Number of accounts should not change");
+
         for (Map<String, Object> accBefore : accountsBefore) {
             Object id = accBefore.get("id");
             if (id != null) {
                 int accountId = ((Number) id).intValue();
                 double balanceBefore = ((Number) accBefore.get("balance")).doubleValue();
                 double balanceAfter = getAccountBalance(accountId);
-                assertEquals(balanceBefore, balanceAfter, 0.01, 
-                    "Balance for account " + accountId + " should not have changed");
+                assertEquals(balanceBefore, balanceAfter, 0.01,
+                        "Balance for account " + accountId + " should not have changed");
             }
         }
     }
