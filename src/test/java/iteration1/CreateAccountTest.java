@@ -9,6 +9,11 @@ import requests.CreateAccountRequester;
 import specs.RequestSpecs;
 import specs.ResponseSpecs;
 
+import java.util.List;
+import java.util.Map;
+
+import static io.restassured.RestAssured.given;
+
 public class CreateAccountTest extends BaseTest {
 
     @Test
@@ -24,11 +29,22 @@ public class CreateAccountTest extends BaseTest {
                 ResponseSpecs.entityWasCreated())
                 .post(userRequest);
 
-        new CreateAccountRequester(RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
+        int accountId = new CreateAccountRequester(RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
                 ResponseSpecs.entityWasCreated())
-                .post(null);
+                .post(null)
+                .extract()
+                .path("id");
 
-        // запросить все аккаунты пользователя и проверить, что наш аккаунт там
+        List<Map<String, Object>> accounts = given()
+                .spec(RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()))
+                .get("api/v1/customer/accounts")
+                .then()
+                .extract()
+                .jsonPath()
+                .getList("$");
 
+        softly.assertThat(accounts)
+                .extracting(acc -> ((Number) acc.get("id")).intValue())
+                .contains(accountId);
     }
 }

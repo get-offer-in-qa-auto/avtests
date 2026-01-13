@@ -64,7 +64,7 @@ public class ChangeNameTest extends BaseTest {
 
     @ParameterizedTest
     @MethodSource("invalidName")
-    public void userCanNotChangeToInvalidName(String errorType) {
+    public void userCanNotChangeToInvalidName(String invalidName, String errorType) {
         CreateUserRequest userRequest = CreateUserRequest.builder()
                 .username(RandomData.getUsername())
                 .password(RandomData.getPassword())
@@ -75,15 +75,23 @@ public class ChangeNameTest extends BaseTest {
                 ResponseSpecs.entityWasCreated())
                 .post(null);
 
+        String nameBefore = given()
+                .spec(RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()))
+                .get("api/v1/customer/profile")
+                .then()
+                .assertThat()
+                .statusCode(HttpStatus.SC_OK)
+                .extract()
+                .path("name");
+
         ChangeNameRequest changeNameRequest = ChangeNameRequest.builder()
-                .name(RandomData.getName())
+                .name(invalidName)
                 .build();
 
         new ChangeNameRequester(RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
                 ResponseSpecs.requestReturnsBadRequestWithMessage(errorType))
                 .post(changeNameRequest);
 
-        // Проверяем, что имя не изменилось
         String nameAfter = given()
                 .spec(RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()))
                 .get("api/v1/customer/profile")
@@ -93,7 +101,7 @@ public class ChangeNameTest extends BaseTest {
                 .extract()
                 .path("name");
 
-        softly.assertThat(nameAfter).isEqualTo(changeNameRequest.getName());
+        softly.assertThat(nameAfter).isEqualTo(nameBefore);
     }
 
     public static Stream<Arguments> invalidName() {

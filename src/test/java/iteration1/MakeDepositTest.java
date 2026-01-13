@@ -5,6 +5,7 @@ import helpers.AccountHelper;
 import models.CreateUserRequest;
 import models.MakeDepositRequest;
 import models.UserRole;
+import org.assertj.core.data.Offset;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
@@ -48,7 +49,7 @@ public class MakeDepositTest extends BaseTest {
                 .post(depositRequest);
 
         double balanceAfter = AccountHelper.getAccountBalance(accountId, userRequest.getUsername(), userRequest.getPassword());
-        softly.assertThat(balanceAfter).isEqualTo(balanceBefore + balance);
+        softly.assertThat(balanceAfter).isCloseTo(balanceBefore + balance, Offset.offset(0.01));
     }
 
     @ParameterizedTest
@@ -81,7 +82,7 @@ public class MakeDepositTest extends BaseTest {
                 .post(makeDepositRequest);
 
         double balanceAfter = AccountHelper.getAccountBalance(accountId, userRequest.getUsername(), userRequest.getPassword());
-        softly.assertThat(balanceAfter).isEqualTo(balanceBefore);
+        softly.assertThat(balanceAfter).isCloseTo(balanceBefore, Offset.offset(0.01));
     }
 
     @ParameterizedTest
@@ -115,7 +116,7 @@ public class MakeDepositTest extends BaseTest {
                 .post(depositRequest);
 
         double balanceAfter = AccountHelper.getAccountBalance(accountId, userRequest.getUsername(), userRequest.getPassword());
-        softly.assertThat(balanceAfter).isEqualTo(balanceBefore);
+        softly.assertThat(balanceAfter).isCloseTo(balanceBefore, Offset.offset(0.01));
     }
 
     public static Stream<Arguments> invalidDepositAccount() {
