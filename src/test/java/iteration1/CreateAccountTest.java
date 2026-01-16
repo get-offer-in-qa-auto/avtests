@@ -1,50 +1,33 @@
 package iteration1;
 
-import generators.RandomData;
+import helpers.AccountHelper;
+import models.CreateAccountResponse;
 import models.CreateUserRequest;
-import models.UserRole;
+import models.comparison.ModelAssertions;
 import org.junit.jupiter.api.Test;
-import requests.AdminCreateUserRequester;
-import requests.CreateAccountRequester;
+import requests.skelethon.Endpoint;
+import requests.skelethon.requesters.ValidatedCrudRequester;
+import requests.steps.AdminSteps;
 import specs.RequestSpecs;
 import specs.ResponseSpecs;
-
-import java.util.List;
-import java.util.Map;
-
-import static io.restassured.RestAssured.given;
 
 public class CreateAccountTest extends BaseTest {
 
     @Test
     public void userCanCreateAccountTest() {
-        CreateUserRequest userRequest = CreateUserRequest.builder()
-                .username(RandomData.getUsername())
-                .password(RandomData.getPassword())
-                .role(UserRole.USER.toString())
-                .build();
+        CreateUserRequest userRequest = AdminSteps.createUser();
 
-        new AdminCreateUserRequester(
-                RequestSpecs.adminSpec(),
+        CreateAccountResponse createdAccount = new ValidatedCrudRequester<CreateAccountResponse>(
+                RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
+                Endpoint.ACCOUNTS,
                 ResponseSpecs.entityWasCreated())
-                .post(userRequest);
+                .post(null);
 
-        int accountId = new CreateAccountRequester(RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
-                ResponseSpecs.entityWasCreated())
-                .post(null)
-                .extract()
-                .path("id");
+        CreateAccountResponse accountFromList = AccountHelper.getCreateAccountResponseById(
+                createdAccount.getId(),
+                userRequest.getUsername(),
+                userRequest.getPassword());
 
-        List<Map<String, Object>> accounts = given()
-                .spec(RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()))
-                .get("api/v1/customer/accounts")
-                .then()
-                .extract()
-                .jsonPath()
-                .getList("$");
-
-        softly.assertThat(accounts)
-                .extracting(acc -> ((Number) acc.get("id")).intValue())
-                .contains(accountId);
+        ModelAssertions.assertThatModels(createdAccount, accountFromList).match();
     }
 }

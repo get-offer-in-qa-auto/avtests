@@ -1,107 +1,80 @@
 package iteration1;
 
-import generators.RandomData;
+import generators.RandomModelGenerator;
 import models.ChangeNameRequest;
+import models.ChangeNameResponse;
 import models.CreateUserRequest;
-import models.UserRole;
-import org.apache.http.HttpStatus;
+import models.comparison.ModelAssertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
-
 import java.util.stream.Stream;
-
 import org.junit.jupiter.params.provider.Arguments;
-import requests.AdminCreateUserRequester;
-import requests.ChangeNameRequester;
-import requests.CreateAccountRequester;
+import requests.skelethon.Endpoint;
+import requests.skelethon.requesters.CrudRequester;
+import requests.skelethon.requesters.ValidatedCrudRequester;
+import requests.steps.AdminSteps;
 import specs.RequestSpecs;
 import specs.ResponseSpecs;
-
-import static io.restassured.RestAssured.given;
 
 public class ChangeNameTest extends BaseTest {
 
     @Test
     public void userCanChangeNameTest() {
+        CreateUserRequest userRequest = AdminSteps.createUser();
 
-        CreateUserRequest userRequest = CreateUserRequest.builder()
-                .username(RandomData.getUsername())
-                .password(RandomData.getPassword())
-                .role(UserRole.USER.toString())
-                .build();
+        ChangeNameRequest changeNameRequest = RandomModelGenerator.generate(ChangeNameRequest.class);
 
-        new AdminCreateUserRequester(
-                RequestSpecs.adminSpec(),
-                ResponseSpecs.entityWasCreated())
-                .post(userRequest);
-
-        new CreateAccountRequester(RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
-                ResponseSpecs.entityWasCreated())
-                .post(null);
-
-        ChangeNameRequest changeNameRequest = ChangeNameRequest.builder()
-                .name(RandomData.getName())
-                .build();
-
-        new ChangeNameRequester(RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
+        ChangeNameResponse changeNameResponse = new ValidatedCrudRequester<ChangeNameResponse>(
+                RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
+                Endpoint.PROFILE,
                 ResponseSpecs.requestReturnsOK())
                 .post(changeNameRequest);
 
-        // Получаем имя из профиля после изменения
-        String actualName = given()
-                .spec(RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()))
-                .get("api/v1/customer/profile")
-                .then()
-                .assertThat()
-                .statusCode(HttpStatus.SC_OK)
-                .extract()
-                .path("name");
-
-        softly.assertThat(actualName).isEqualTo(changeNameRequest.getName());
-
+        ModelAssertions.assertThatModels(changeNameRequest, changeNameResponse).match();
     }
 
     @ParameterizedTest
     @MethodSource("invalidName")
     public void userCanNotChangeToInvalidName(String invalidName, String errorType) {
-        CreateUserRequest userRequest = CreateUserRequest.builder()
-                .username(RandomData.getUsername())
-                .password(RandomData.getPassword())
-                .role(UserRole.USER.toString())
-                .build();
-        new AdminCreateUserRequester(RequestSpecs.adminSpec(), ResponseSpecs.entityWasCreated()).post(userRequest);
-        new CreateAccountRequester(RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
-                ResponseSpecs.entityWasCreated())
-                .post(null);
+        CreateUserRequest userRequest = AdminSteps.createUser();
 
-        String nameBefore = given()
-                .spec(RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()))
-                .get("api/v1/customer/profile")
-                .then()
-                .assertThat()
-                .statusCode(HttpStatus.SC_OK)
-                .extract()
-                .path("name");
+        ChangeNameResponse nameBeforeResponse = new ValidatedCrudRequester<ChangeNameResponse>(
+                RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
+                Endpoint.PROFILE,
+                ResponseSpecs.requestReturnsOK())
+                .get(0);
 
         ChangeNameRequest changeNameRequest = ChangeNameRequest.builder()
                 .name(invalidName)
                 .build();
 
-        new ChangeNameRequester(RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
-                ResponseSpecs.requestReturnsBadRequestWithMessage(errorType))
-                .post(changeNameRequest);
+        var response = new CrudRequester(RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
+                Endpoint.PROFILE,
+                ResponseSpecs.requestReturnsBadRequest("message", errorType))
+                .post(changeNameRequest)
+                .extract();
+        
+        // Verify error message if response is JSON
+        String responseBody = response.body().asString();
+        if (responseBody != null && responseBody.trim().startsWith("{")) {
+            try {
+                java.util.List<String> messages = response.jsonPath().getList("message");
+                if (messages != null && !messages.contains(errorType)) {
+                    throw new AssertionError("Expected error message '" + errorType + "' not found in response: " + messages);
+                }
+            } catch (Exception e) {
+                // If JSON parsing fails, skip message verification
+            }
+        }
 
-        String nameAfter = given()
-                .spec(RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()))
-                .get("api/v1/customer/profile")
-                .then()
-                .assertThat()
-                .statusCode(HttpStatus.SC_OK)
-                .extract()
-                .path("name");
+        ChangeNameResponse nameAfterResponse = new ValidatedCrudRequester<ChangeNameResponse>(
+                RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
+                Endpoint.PROFILE,
+                ResponseSpecs.requestReturnsOK())
+                .get(0);
 
-        softly.assertThat(nameAfter).isEqualTo(nameBefore);
+        ModelAssertions.assertThatModels(nameBeforeResponse, nameAfterResponse).match();
     }
 
     public static Stream<Arguments> invalidName() {

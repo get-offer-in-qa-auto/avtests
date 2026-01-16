@@ -1,122 +1,106 @@
 package iteration1;
 
-import generators.RandomData;
 import helpers.AccountHelper;
 import models.CreateUserRequest;
 import models.MakeDepositRequest;
-import models.UserRole;
-import org.assertj.core.data.Offset;
+import models.MakeDepositResponse;
+import models.comparison.ModelAssertions;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.MethodSource;
-
-import java.util.stream.Stream;
-
 import org.junit.jupiter.params.provider.Arguments;
-import requests.AdminCreateUserRequester;
-import requests.CreateAccountRequester;
-import requests.MakeDepositRequester;
+import org.junit.jupiter.params.provider.MethodSource;
+import requests.skelethon.Endpoint;
+import requests.skelethon.requesters.CrudRequester;
+import requests.skelethon.requesters.ValidatedCrudRequester;
+import requests.steps.AdminSteps;
 import specs.RequestSpecs;
 import specs.ResponseSpecs;
+
+import java.util.stream.Stream;
 
 public class MakeDepositTest extends BaseTest {
 
     @ParameterizedTest
     @MethodSource("validBalanceData")
     public void userCanMakeDepositTest(double balance) {
-        CreateUserRequest userRequest = CreateUserRequest.builder()
-                .username(RandomData.getUsername())
-                .password(RandomData.getPassword())
-                .role(UserRole.USER.toString())
-                .build();
-        new AdminCreateUserRequester(RequestSpecs.adminSpec(), ResponseSpecs.entityWasCreated())
-                .post(userRequest);
+        CreateUserRequest userRequest = AdminSteps.createUser();
 
-        int accountId = new CreateAccountRequester(RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
+        int accountId = new CrudRequester(RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
+                Endpoint.ACCOUNTS,
                 ResponseSpecs.entityWasCreated())
                 .post(null)
                 .extract()
                 .path("id");
-
-        double balanceBefore = AccountHelper.getAccountBalance(accountId, userRequest.getUsername(), userRequest.getPassword());
 
         MakeDepositRequest depositRequest = MakeDepositRequest.builder()
                 .id(accountId)
                 .balance(balance)
                 .build();
 
-        new MakeDepositRequester(RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
+        MakeDepositResponse depositResponse = new ValidatedCrudRequester<MakeDepositResponse>(
+                RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
+                Endpoint.DEPOSIT,
                 ResponseSpecs.requestReturnsOK())
                 .post(depositRequest);
 
-        double balanceAfter = AccountHelper.getAccountBalance(accountId, userRequest.getUsername(), userRequest.getPassword());
-        softly.assertThat(balanceAfter).isCloseTo(balanceBefore + balance, Offset.offset(0.01));
+        ModelAssertions.assertThatModels(depositRequest, depositResponse).match();
     }
 
     @ParameterizedTest
     @MethodSource("invalidBalanceData")
     public void userCannotDepositInvalidBalanceTest(double balance, String errorValue) {
-        CreateUserRequest userRequest = CreateUserRequest.builder()
-                .username(RandomData.getUsername())
-                .password(RandomData.getPassword())
-                .role(UserRole.USER.toString())
-                .build();
+        CreateUserRequest userRequest = AdminSteps.createUser();
 
-        new AdminCreateUserRequester(RequestSpecs.adminSpec(), ResponseSpecs.entityWasCreated())
-                .post(userRequest);
-
-        int accountId = new CreateAccountRequester(RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
+        int accountId = new CrudRequester(RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
+                Endpoint.ACCOUNTS,
                 ResponseSpecs.entityWasCreated())
                 .post(null)
                 .extract()
                 .path("id");
 
-        double balanceBefore = AccountHelper.getAccountBalance(accountId, userRequest.getUsername(), userRequest.getPassword());
+        MakeDepositResponse accountBefore = AccountHelper.getAccountById(accountId, userRequest.getUsername(), userRequest.getPassword());
 
-        MakeDepositRequest makeDepositRequest = MakeDepositRequest.builder()
+        MakeDepositRequest depositRequest = MakeDepositRequest.builder()
                 .id(accountId)
                 .balance(balance)
                 .build();
 
-        new MakeDepositRequester(RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
-                ResponseSpecs.requestReturnsBadRequestWithMessage(errorValue))
-                .post(makeDepositRequest);
+        new CrudRequester(RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
+                Endpoint.DEPOSIT,
+                ResponseSpecs.requestReturnsBadRequest("message", errorValue))
+                .post(depositRequest);
 
-        double balanceAfter = AccountHelper.getAccountBalance(accountId, userRequest.getUsername(), userRequest.getPassword());
-        softly.assertThat(balanceAfter).isCloseTo(balanceBefore, Offset.offset(0.01));
+        MakeDepositResponse accountAfter = AccountHelper.getAccountById(accountId, userRequest.getUsername(), userRequest.getPassword());
+
+        ModelAssertions.assertThatModels(accountBefore, accountAfter).match();
     }
 
     @ParameterizedTest
     @MethodSource("invalidDepositAccount")
     public void userCannotDepositToInvalidAccountTest(int account, int balance) {
-        CreateUserRequest userRequest = CreateUserRequest.builder()
-                .username(RandomData.getUsername())
-                .password(RandomData.getPassword())
-                .role(UserRole.USER.toString())
-                .build();
+        CreateUserRequest userRequest = AdminSteps.createUser();
 
-        new AdminCreateUserRequester(RequestSpecs.adminSpec(), ResponseSpecs.entityWasCreated())
-                .post(userRequest);
-
-        int accountId = new CreateAccountRequester(RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
+        int accountId = new CrudRequester(RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
+                Endpoint.ACCOUNTS,
                 ResponseSpecs.entityWasCreated())
                 .post(null)
                 .extract()
                 .path("id");
 
-        double balanceBefore = AccountHelper.getAccountBalance(accountId, userRequest.getUsername(), userRequest.getPassword());
+        MakeDepositResponse accountBefore = AccountHelper.getAccountById(accountId, userRequest.getUsername(), userRequest.getPassword());
 
-        // Пытаемся сделать депозит на чужой/несуществующий аккаунт
         MakeDepositRequest depositRequest = MakeDepositRequest.builder()
                 .id(account)
                 .balance(balance)
                 .build();
 
-        new MakeDepositRequester(RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
+        new CrudRequester(RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
+                Endpoint.DEPOSIT,
                 ResponseSpecs.requestReturnsForbidden())
                 .post(depositRequest);
 
-        double balanceAfter = AccountHelper.getAccountBalance(accountId, userRequest.getUsername(), userRequest.getPassword());
-        softly.assertThat(balanceAfter).isCloseTo(balanceBefore, Offset.offset(0.01));
+        MakeDepositResponse accountAfter = AccountHelper.getAccountById(accountId, userRequest.getUsername(), userRequest.getPassword());
+
+        ModelAssertions.assertThatModels(accountBefore, accountAfter).match();
     }
 
     public static Stream<Arguments> invalidDepositAccount() {

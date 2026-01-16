@@ -11,10 +11,9 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class MakeDepositResponse extends BaseModel {
-    private int id;
+public class CreateAccountResponse extends BaseModel {
+    private long id;
     private String accountNumber;
     private double balance;
-    private List<Object> transactions;
-
+    private List<String> transactions;
 }
