@@ -2,6 +2,7 @@ package iteration1;
 
 import generators.RandomData;
 import helpers.AccountHelper;
+import models.CreateAccountResponse;
 import models.CreateUserRequest;
 import models.MakeDepositRequest;
 import models.MakeTransactionRequest;
@@ -34,27 +35,38 @@ public class MakeTransactionTest extends BaseTest {
         new AdminCreateUserRequester(RequestSpecs.adminSpec(), ResponseSpecs.entityWasCreated())
                 .post(userRequest);
 
-        int senderAccountId = new CreateAccountRequester(RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
+        CreateAccountResponse senderAccountResponse = new CreateAccountRequester(RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
                 ResponseSpecs.entityWasCreated())
                 .post(null)
                 .extract()
-                .path("id");
+                .as(CreateAccountResponse.class);
 
-        int receiverAccountId = new CreateAccountRequester(RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
+        int senderAccountId = senderAccountResponse.getId();
+
+        CreateAccountResponse receiverAccountResponse = new CreateAccountRequester(RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
                 ResponseSpecs.entityWasCreated())
                 .post(null)
                 .extract()
-                .path("id");
+                .as(CreateAccountResponse.class);
 
-        double depositAmount = Math.min(amount + 100.0, 5000.0);
-        MakeDepositRequest depositRequest = MakeDepositRequest.builder()
-                .id(senderAccountId)
-                .balance(depositAmount)
-                .build();
+        int receiverAccountId = receiverAccountResponse.getId();
 
-        new MakeDepositRequester(RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
-                ResponseSpecs.requestReturnsOK())
-                .post(depositRequest);
+        double totalDepositNeeded = amount + 100.0; // +100 для запаса
+        double depositAmount = 0.0;
+        
+        while (depositAmount < totalDepositNeeded) {
+            double currentDeposit = Math.min(totalDepositNeeded - depositAmount, 5000.0);
+            MakeDepositRequest depositRequest = MakeDepositRequest.builder()
+                    .id(senderAccountId)
+                    .balance(currentDeposit)
+                    .build();
+
+            new MakeDepositRequester(RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
+                    ResponseSpecs.requestReturnsOK())
+                    .post(depositRequest);
+            
+            depositAmount += currentDeposit;
+        }
 
         MakeTransactionRequest transactionRequest = MakeTransactionRequest.builder()
                 .senderAccountId(senderAccountId)
@@ -93,17 +105,21 @@ public class MakeTransactionTest extends BaseTest {
         new AdminCreateUserRequester(RequestSpecs.adminSpec(), ResponseSpecs.entityWasCreated())
                 .post(userRequest);
 
-        int senderAccountId = new CreateAccountRequester(RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
+        CreateAccountResponse senderAccountResponse = new CreateAccountRequester(RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
                 ResponseSpecs.entityWasCreated())
                 .post(null)
                 .extract()
-                .path("id");
+                .as(CreateAccountResponse.class);
 
-        int receiverAccountId = new CreateAccountRequester(RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
+        int senderAccountId = senderAccountResponse.getId();
+
+        CreateAccountResponse receiverAccountResponse = new CreateAccountRequester(RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
                 ResponseSpecs.entityWasCreated())
                 .post(null)
                 .extract()
-                .path("id");
+                .as(CreateAccountResponse.class);
+
+        int receiverAccountId = receiverAccountResponse.getId();
 
         double depositAmount = 1000.0;
         MakeDepositRequest depositRequest = MakeDepositRequest.builder()
@@ -159,17 +175,21 @@ public class MakeTransactionTest extends BaseTest {
         new AdminCreateUserRequester(RequestSpecs.adminSpec(), ResponseSpecs.entityWasCreated())
                 .post(receiverUserRequest);
 
-        int senderAccountId = new CreateAccountRequester(RequestSpecs.authAsUser(senderUserRequest.getUsername(), senderUserRequest.getPassword()),
+        CreateAccountResponse senderAccountResponse = new CreateAccountRequester(RequestSpecs.authAsUser(senderUserRequest.getUsername(), senderUserRequest.getPassword()),
                 ResponseSpecs.entityWasCreated())
                 .post(null)
                 .extract()
-                .path("id");
+                .as(CreateAccountResponse.class);
 
-        int receiverAccountId = new CreateAccountRequester(RequestSpecs.authAsUser(receiverUserRequest.getUsername(), receiverUserRequest.getPassword()),
+        int senderAccountId = senderAccountResponse.getId();
+
+        CreateAccountResponse receiverAccountResponse = new CreateAccountRequester(RequestSpecs.authAsUser(receiverUserRequest.getUsername(), receiverUserRequest.getPassword()),
                 ResponseSpecs.entityWasCreated())
                 .post(null)
                 .extract()
-                .path("id");
+                .as(CreateAccountResponse.class);
+
+        int receiverAccountId = receiverAccountResponse.getId();
 
         double transferAmount = 500.0;
         double depositAmount = transferAmount + 100.0;
@@ -210,17 +230,21 @@ public class MakeTransactionTest extends BaseTest {
         new AdminCreateUserRequester(RequestSpecs.adminSpec(), ResponseSpecs.entityWasCreated())
                 .post(userRequest);
 
-        int senderAccountId = new CreateAccountRequester(RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
+        CreateAccountResponse senderAccountResponse = new CreateAccountRequester(RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
                 ResponseSpecs.entityWasCreated())
                 .post(null)
                 .extract()
-                .path("id");
+                .as(CreateAccountResponse.class);
 
-        int receiverAccountId = new CreateAccountRequester(RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
+        int senderAccountId = senderAccountResponse.getId();
+
+        CreateAccountResponse receiverAccountResponse = new CreateAccountRequester(RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
                 ResponseSpecs.entityWasCreated())
                 .post(null)
                 .extract()
-                .path("id");
+                .as(CreateAccountResponse.class);
+
+        int receiverAccountId = receiverAccountResponse.getId();
 
         double depositAmount = 500.0;
         double transferAmount = depositAmount + 100.0;

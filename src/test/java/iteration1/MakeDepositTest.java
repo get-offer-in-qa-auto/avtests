@@ -2,21 +2,21 @@ package iteration1;
 
 import generators.RandomData;
 import helpers.AccountHelper;
+import models.CreateAccountResponse;
 import models.CreateUserRequest;
 import models.MakeDepositRequest;
 import models.UserRole;
 import org.assertj.core.data.Offset;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.MethodSource;
-
-import java.util.stream.Stream;
-
 import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import requests.AdminCreateUserRequester;
 import requests.CreateAccountRequester;
 import requests.MakeDepositRequester;
 import specs.RequestSpecs;
 import specs.ResponseSpecs;
+
+import java.util.stream.Stream;
 
 public class MakeDepositTest extends BaseTest {
 
@@ -31,11 +31,13 @@ public class MakeDepositTest extends BaseTest {
         new AdminCreateUserRequester(RequestSpecs.adminSpec(), ResponseSpecs.entityWasCreated())
                 .post(userRequest);
 
-        int accountId = new CreateAccountRequester(RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
+        CreateAccountResponse accountResponse = new CreateAccountRequester(RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
                 ResponseSpecs.entityWasCreated())
                 .post(null)
                 .extract()
-                .path("id");
+                .as(CreateAccountResponse.class);
+
+        int accountId = accountResponse.getId();
 
         double balanceBefore = AccountHelper.getAccountBalance(accountId, userRequest.getUsername(), userRequest.getPassword());
 
@@ -64,11 +66,13 @@ public class MakeDepositTest extends BaseTest {
         new AdminCreateUserRequester(RequestSpecs.adminSpec(), ResponseSpecs.entityWasCreated())
                 .post(userRequest);
 
-        int accountId = new CreateAccountRequester(RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
+        CreateAccountResponse accountResponse = new CreateAccountRequester(RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
                 ResponseSpecs.entityWasCreated())
                 .post(null)
                 .extract()
-                .path("id");
+                .as(CreateAccountResponse.class);
+
+        int accountId = accountResponse.getId();
 
         double balanceBefore = AccountHelper.getAccountBalance(accountId, userRequest.getUsername(), userRequest.getPassword());
 
@@ -97,11 +101,13 @@ public class MakeDepositTest extends BaseTest {
         new AdminCreateUserRequester(RequestSpecs.adminSpec(), ResponseSpecs.entityWasCreated())
                 .post(userRequest);
 
-        int accountId = new CreateAccountRequester(RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
+        CreateAccountResponse accountResponse = new CreateAccountRequester(RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
                 ResponseSpecs.entityWasCreated())
                 .post(null)
                 .extract()
-                .path("id");
+                .as(CreateAccountResponse.class);
+
+        int accountId = accountResponse.getId();
 
         double balanceBefore = AccountHelper.getAccountBalance(accountId, userRequest.getUsername(), userRequest.getPassword());
 

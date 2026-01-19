@@ -3,22 +3,20 @@ package iteration1;
 import generators.RandomData;
 import models.ChangeNameRequest;
 import models.CreateUserRequest;
+import models.Profile;
 import models.UserRole;
-import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.MethodSource;
-
-import java.util.stream.Stream;
-
 import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import requests.AdminCreateUserRequester;
 import requests.ChangeNameRequester;
 import requests.CreateAccountRequester;
+import requests.GetProfileRequester;
 import specs.RequestSpecs;
 import specs.ResponseSpecs;
 
-import static io.restassured.RestAssured.given;
+import java.util.stream.Stream;
 
 public class ChangeNameTest extends BaseTest {
 
@@ -49,16 +47,14 @@ public class ChangeNameTest extends BaseTest {
                 .post(changeNameRequest);
 
         // Получаем имя из профиля после изменения
-        String actualName = given()
-                .spec(RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()))
-                .get("api/v1/customer/profile")
-                .then()
-                .assertThat()
-                .statusCode(HttpStatus.SC_OK)
+        Profile profile = new GetProfileRequester(
+                RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
+                ResponseSpecs.requestReturnsOK())
+                .get()
                 .extract()
-                .path("name");
+                .as(Profile.class);
 
-        softly.assertThat(actualName).isEqualTo(changeNameRequest.getName());
+        softly.assertThat(profile.getName()).isEqualTo(changeNameRequest.getName());
 
     }
 
@@ -75,14 +71,14 @@ public class ChangeNameTest extends BaseTest {
                 ResponseSpecs.entityWasCreated())
                 .post(null);
 
-        String nameBefore = given()
-                .spec(RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()))
-                .get("api/v1/customer/profile")
-                .then()
-                .assertThat()
-                .statusCode(HttpStatus.SC_OK)
+        Profile profileBefore = new GetProfileRequester(
+                RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
+                ResponseSpecs.requestReturnsOK())
+                .get()
                 .extract()
-                .path("name");
+                .as(Profile.class);
+
+        String nameBefore = profileBefore.getName();
 
         ChangeNameRequest changeNameRequest = ChangeNameRequest.builder()
                 .name(invalidName)
@@ -92,16 +88,14 @@ public class ChangeNameTest extends BaseTest {
                 ResponseSpecs.requestReturnsBadRequestWithMessage(errorType))
                 .post(changeNameRequest);
 
-        String nameAfter = given()
-                .spec(RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()))
-                .get("api/v1/customer/profile")
-                .then()
-                .assertThat()
-                .statusCode(HttpStatus.SC_OK)
+        Profile profileAfter = new GetProfileRequester(
+                RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
+                ResponseSpecs.requestReturnsOK())
+                .get()
                 .extract()
-                .path("name");
+                .as(Profile.class);
 
-        softly.assertThat(nameAfter).isEqualTo(nameBefore);
+        softly.assertThat(profileAfter.getName()).isEqualTo(nameBefore);
     }
 
     public static Stream<Arguments> invalidName() {

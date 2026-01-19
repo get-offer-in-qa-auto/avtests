@@ -1,31 +1,31 @@
 package helpers;
 
+import models.Account;
+import requests.GetAccountsRequester;
 import specs.RequestSpecs;
+import specs.ResponseSpecs;
 
+import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
-
-import static io.restassured.RestAssured.given;
 
 public class AccountHelper {
     private AccountHelper() {}
 
     public static double getAccountBalance(int accountId, String username, String password) {
-        List<Map<String, Object>> accounts = given()
-                .spec(RequestSpecs.authAsUser(username, password))
-                .get("api/v1/customer/accounts")
-                .then()
+        Account[] accountsArray = new GetAccountsRequester(
+                RequestSpecs.authAsUser(username, password),
+                ResponseSpecs.requestReturnsOK())
+                .get()
                 .extract()
-                .jsonPath()
-                .getList("$");
+                .body()
+                .as(Account[].class);
+
+        List<Account> accounts = Arrays.asList(accountsArray);
 
         return accounts.stream()
-                .filter(acc -> {
-                    Object id = acc.get("id");
-                    return id != null && ((Number) id).intValue() == accountId;
-                })
+                .filter(acc -> acc.getId() == accountId)
                 .findFirst()
-                .map(acc -> ((Number) acc.get("balance")).doubleValue())
+                .map(Account::getBalance)
                 .orElse(0.0);
     }
 }
