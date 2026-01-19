@@ -49,24 +49,10 @@ public class ChangeNameTest extends BaseTest {
                 .name(invalidName)
                 .build();
 
-        var response = new CrudRequester(RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
+        new CrudRequester(RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
                 Endpoint.PROFILE,
-                ResponseSpecs.requestReturnsBadRequest("message", errorType))
-                .post(changeNameRequest)
-                .extract();
-        
-        // Verify error message if response is JSON
-        String responseBody = response.body().asString();
-        if (responseBody != null && responseBody.trim().startsWith("{")) {
-            try {
-                java.util.List<String> messages = response.jsonPath().getList("message");
-                if (messages != null && !messages.contains(errorType)) {
-                    throw new AssertionError("Expected error message '" + errorType + "' not found in response: " + messages);
-                }
-            } catch (Exception e) {
-                // If JSON parsing fails, skip message verification
-            }
-        }
+                ResponseSpecs.requestReturnsBadRequestWithMessage(errorType))
+                .post(changeNameRequest);
 
         ChangeNameResponse nameAfterResponse = new ValidatedCrudRequester<ChangeNameResponse>(
                 RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),

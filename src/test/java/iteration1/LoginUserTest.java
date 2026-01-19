@@ -12,6 +12,8 @@ import requests.steps.AdminSteps;
 import specs.RequestSpecs;
 import specs.ResponseSpecs;
 
+import static specs.ResponseSpecs.AUTHORIZATION_HEADER;
+
 public class LoginUserTest extends BaseTest {
 
     @Test
@@ -35,6 +37,6 @@ public class LoginUserTest extends BaseTest {
                 Endpoint.LOGIN,
                 ResponseSpecs.requestReturnsOK())
                 .post(LoginUserRequest.builder().username(userRequest.getUsername()).password(userRequest.getPassword()).build())
-                .header("Authorization", Matchers.notNullValue());
+                .header(AUTHORIZATION_HEADER, Matchers.notNullValue());
     }
 }

@@ -10,6 +10,8 @@ import java.util.List;
 public class ResponseSpecs {
     private ResponseSpecs() {}
 
+    public static final String AUTHORIZATION_HEADER = "Authorization";
+
     private static ResponseSpecBuilder defaultResponseBuilder() {
         return new ResponseSpecBuilder();
     }
@@ -29,6 +31,14 @@ public class ResponseSpecs {
     public static ResponseSpecification requestReturnsBadRequest(String errorKey, String errorValue) {
         return defaultResponseBuilder()
                 .expectStatusCode(HttpStatus.SC_BAD_REQUEST)
+                .expectBody(errorKey, Matchers.hasItem(errorValue))
+                .build();
+    }
+
+    public static ResponseSpecification requestReturnsBadRequestWithMessage(String errorMessage) {
+        return defaultResponseBuilder()
+                .expectStatusCode(HttpStatus.SC_BAD_REQUEST)
+                .expectBody(Matchers.equalTo(errorMessage))
                 .build();
     }
 

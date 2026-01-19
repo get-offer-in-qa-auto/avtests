@@ -1,6 +1,7 @@
 package iteration1;
 
 import helpers.AccountHelper;
+import models.CreateAccountResponse;
 import models.CreateUserRequest;
 import models.MakeDepositRequest;
 import models.MakeDepositResponse;
@@ -24,12 +25,13 @@ public class MakeDepositTest extends BaseTest {
     public void userCanMakeDepositTest(double balance) {
         CreateUserRequest userRequest = AdminSteps.createUser();
 
-        int accountId = new CrudRequester(RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
+        CreateAccountResponse accountResponse = new ValidatedCrudRequester<CreateAccountResponse>(
+                RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
                 Endpoint.ACCOUNTS,
                 ResponseSpecs.entityWasCreated())
-                .post(null)
-                .extract()
-                .path("id");
+                .post(null);
+
+        int accountId = (int) accountResponse.getId();
 
         MakeDepositRequest depositRequest = MakeDepositRequest.builder()
                 .id(accountId)
@@ -50,12 +52,13 @@ public class MakeDepositTest extends BaseTest {
     public void userCannotDepositInvalidBalanceTest(double balance, String errorValue) {
         CreateUserRequest userRequest = AdminSteps.createUser();
 
-        int accountId = new CrudRequester(RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
+        CreateAccountResponse accountResponse = new ValidatedCrudRequester<CreateAccountResponse>(
+                RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
                 Endpoint.ACCOUNTS,
                 ResponseSpecs.entityWasCreated())
-                .post(null)
-                .extract()
-                .path("id");
+                .post(null);
+
+        int accountId = (int) accountResponse.getId();
 
         MakeDepositResponse accountBefore = AccountHelper.getAccountById(accountId, userRequest.getUsername(), userRequest.getPassword());
 
@@ -66,7 +69,7 @@ public class MakeDepositTest extends BaseTest {
 
         new CrudRequester(RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
                 Endpoint.DEPOSIT,
-                ResponseSpecs.requestReturnsBadRequest("message", errorValue))
+                ResponseSpecs.requestReturnsBadRequestWithMessage(errorValue))
                 .post(depositRequest);
 
         MakeDepositResponse accountAfter = AccountHelper.getAccountById(accountId, userRequest.getUsername(), userRequest.getPassword());
@@ -79,12 +82,13 @@ public class MakeDepositTest extends BaseTest {
     public void userCannotDepositToInvalidAccountTest(int account, int balance) {
         CreateUserRequest userRequest = AdminSteps.createUser();
 
-        int accountId = new CrudRequester(RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
+        CreateAccountResponse accountResponse = new ValidatedCrudRequester<CreateAccountResponse>(
+                RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
                 Endpoint.ACCOUNTS,
                 ResponseSpecs.entityWasCreated())
-                .post(null)
-                .extract()
-                .path("id");
+                .post(null);
+
+        int accountId = (int) accountResponse.getId();
 
         MakeDepositResponse accountBefore = AccountHelper.getAccountById(accountId, userRequest.getUsername(), userRequest.getPassword());
 
