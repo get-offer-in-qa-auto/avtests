@@ -1,13 +1,19 @@
 package iteration1;
 
 import generators.RandomData;
+import models.Account;
+import models.CreateAccountResponse;
 import models.CreateUserRequest;
 import models.UserRole;
 import org.junit.jupiter.api.Test;
 import requests.AdminCreateUserRequester;
 import requests.CreateAccountRequester;
+import requests.GetAccountsRequester;
 import specs.RequestSpecs;
 import specs.ResponseSpecs;
+
+import java.util.Arrays;
+import java.util.List;
 
 public class CreateAccountTest extends BaseTest {
 
@@ -24,11 +30,26 @@ public class CreateAccountTest extends BaseTest {
                 ResponseSpecs.entityWasCreated())
                 .post(userRequest);
 
-        new CreateAccountRequester(RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
+        CreateAccountResponse createAccountResponse = new CreateAccountRequester(RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
                 ResponseSpecs.entityWasCreated())
-                .post(null);
+                .post(null)
+                .extract()
+                .as(CreateAccountResponse.class);
 
-        // запросить все аккаунты пользователя и проверить, что наш аккаунт там
+        int accountId = createAccountResponse.getId();
 
+        Account[] accountsArray = new GetAccountsRequester(
+                RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
+                ResponseSpecs.requestReturnsOK())
+                .get()
+                .extract()
+                .body()
+                .as(Account[].class);
+
+        List<Account> accounts = Arrays.asList(accountsArray);
+
+        softly.assertThat(accounts)
+                .extracting(Account::getId)
+                .contains(accountId);
     }
 }
