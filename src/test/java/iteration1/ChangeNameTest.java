@@ -36,7 +36,7 @@ public class ChangeNameTest extends BaseTest {
 
         new CreateAccountRequester(RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
                 ResponseSpecs.entityWasCreated())
-                .post(null);
+                .post();
 
         ChangeNameRequest changeNameRequest = ChangeNameRequest.builder()
                 .name(RandomData.getName())
@@ -69,7 +69,7 @@ public class ChangeNameTest extends BaseTest {
         new AdminCreateUserRequester(RequestSpecs.adminSpec(), ResponseSpecs.entityWasCreated()).post(userRequest);
         new CreateAccountRequester(RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
                 ResponseSpecs.entityWasCreated())
-                .post(null);
+                .post();
 
         Profile profileBefore = new GetProfileRequester(
                 RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
