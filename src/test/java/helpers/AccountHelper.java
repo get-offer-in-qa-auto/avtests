@@ -54,9 +54,7 @@ public class AccountHelper {
                 .accountNumber(account.getAccountNumber())
                 .balance(account.getBalance())
                 .transactions(account.getTransactions() != null ? 
-                        account.getTransactions().stream()
-                                .map(Object::toString)
-                                .toList() : List.of())
+                        account.getTransactions() : List.of())
                 .build();
     }
 }

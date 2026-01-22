@@ -1,4 +1,4 @@
-package iteration1;
+package api;
 
 import generators.RandomModelGenerator;
 import models.CreateUserRequest;
