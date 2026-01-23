@@ -1,0 +1,75 @@
+package api.iteration2;
+
+import api.models.CreateUserRequest;
+import api.requests.steps.AdminSteps;
+import api.specs.RequestSpecs;
+import api.specs.ResponseSpecs;
+import api.generators.RandomModelGenerator;
+import models.ChangeNameRequest;
+import models.ChangeNameResponse;
+import models.comparison.ModelAssertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import api.requests.skelethon.Endpoint;
+import api.requests.skelethon.requesters.CrudRequester;
+import api.requests.skelethon.requesters.ValidatedCrudRequester;
+
+import java.util.stream.Stream;
+
+public class ChangeNameTest extends BaseTest {
+
+    @Test
+    public void userCanChangeNameTest() {
+        CreateUserRequest userRequest = AdminSteps.createUser();
+
+        ChangeNameRequest changeNameRequest = RandomModelGenerator.generate(ChangeNameRequest.class);
+
+        ChangeNameResponse changeNameResponse = new ValidatedCrudRequester<ChangeNameResponse>(
+                RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
+                Endpoint.PROFILE,
+                ResponseSpecs.requestReturnsOK())
+                .post(changeNameRequest);
+
+        ModelAssertions.assertThatModels(changeNameRequest, changeNameResponse).match();
+    }
+
+    @ParameterizedTest
+    @MethodSource("invalidName")
+    public void userCanNotChangeToInvalidName(String invalidName, String errorType) {
+        CreateUserRequest userRequest = AdminSteps.createUser();
+
+        ChangeNameResponse nameBeforeResponse = (ChangeNameResponse) new ValidatedCrudRequester<ChangeNameResponse>(
+                RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
+                Endpoint.PROFILE,
+                ResponseSpecs.requestReturnsOK())
+                .get(0);
+
+        ChangeNameRequest changeNameRequest = ChangeNameRequest.builder()
+                .name(invalidName)
+                .build();
+
+        new CrudRequester(RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
+                Endpoint.PROFILE,
+                ResponseSpecs.requestReturnsBadRequestWithMessage(errorType))
+                .post(changeNameRequest);
+
+        ChangeNameResponse nameAfterResponse = (ChangeNameResponse) new ValidatedCrudRequester<ChangeNameResponse>(
+                RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
+                Endpoint.PROFILE,
+                ResponseSpecs.requestReturnsOK())
+                .get(0);
+
+        ModelAssertions.assertThatModels(nameBeforeResponse, nameAfterResponse).match();
+    }
+
+    public static Stream<Arguments> invalidName() {
+        return Stream.of(
+                Arguments.of("", "Name must contain two words with letters only"),
+                Arguments.of("5414141alex", "Name must contain two words with letters only"),
+                Arguments.of("5414141alex$$$", "Name must contain two words with letters only"),
+                Arguments.of("alexpetrov", "Name must contain two words with letters only"));
+
+    }
+}

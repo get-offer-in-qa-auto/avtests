@@ -1,249 +1,146 @@
 package ui;
 
-import com.codeborne.selenide.Condition;
-import com.codeborne.selenide.Configuration;
-import com.codeborne.selenide.Selectors;
-import com.codeborne.selenide.Selenide;
-import models.*;
-import org.junit.jupiter.api.BeforeAll;
+import api.models.CreateAccountResponse;
+import api.models.CreateUserRequest;
+import api.requests.steps.AdminSteps;
+import api.requests.steps.UserSteps;
 import org.junit.jupiter.api.Test;
-import org.openqa.selenium.Alert;
-import requests.skelethon.Endpoint;
-import requests.skelethon.requesters.CrudRequester;
-import requests.skelethon.requesters.ValidatedCrudRequester;
-import requests.steps.AdminSteps;
-import specs.RequestSpecs;
-import specs.ResponseSpecs;
+import ui.pages.BankAlert;
+import ui.pages.DepositMoney;
+import ui.pages.TransferMoney;
+import ui.pages.UserDashboard;
 
-import java.util.Arrays;
-import java.util.Map;
+import java.util.List;
 
-import static com.codeborne.selenide.Selenide.*;
-import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class MakeTransactionTest {
-    @BeforeAll
-    public static void setupSelenoid() {
-        Configuration.remote = "http://localhost:4444/wd/hub";
-        Configuration.baseUrl = "http://host.docker.internal:3000";
-        Configuration.browser = "chrome";
-        Configuration.browserSize = "1920x1080";
-        Configuration.timeout = 10000; // 10 seconds timeout
-        Configuration.pageLoadTimeout = 30000; // 30 seconds page load timeout
-
-        Configuration.browserCapabilities.setCapability("selenoid:options",
-                Map.of("enableVNC", true, "enableLog", true)
-        );
-    }
-
+public class MakeTransactionTest extends BaseUiTest {
     @Test
     public void userCanMakeTransactionTest() {
-        // ШАГ 1: админ создает юзера
-        CreateUserRequest userRequest = AdminSteps.createUser();
-        // ШАГ 2: юзер логинится в банке
-        String userAuthHeader = new CrudRequester(
-                RequestSpecs.unauthSpec(),
-                Endpoint.LOGIN,
-                ResponseSpecs.requestReturnsOK())
-                .post(LoginUserRequest.builder().username(userRequest.getUsername()).password(userRequest.getPassword()).build())
-                .extract()
-                .header("Authorization");
-        Selenide.open("/");
+        CreateUserRequest user = AdminSteps.createUser();
 
-        executeJavaScript("localStorage.setItem('authToken', arguments[0]);", userAuthHeader);
+        authAsUser(user);
 
-        // ШАГ 3: юзер создает аккаунт
-        CreateAccountResponse accountResponse = new ValidatedCrudRequester<CreateAccountResponse>(
-                RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
-                Endpoint.ACCOUNTS,
-                ResponseSpecs.entityWasCreated())
-                .post(null);
+        new UserDashboard().open().createNewAccount();
+        List<CreateAccountResponse> accounts = new UserSteps(user.getUsername(), user.getPassword()).getAllAccounts();
+        new UserDashboard().checkAlertMessageAndAccept(
+                BankAlert.NEW_ACCOUNT_CREATED.getMessage() + accounts.getFirst().getAccountNumber());
+        String firstAccountNumber = accounts.getFirst().getAccountNumber();
+        long firstAccountId = accounts.getFirst().getId();
 
-        // ШАГ 4: юзер создает еще один аккаунт
-        CreateAccountResponse response = new ValidatedCrudRequester<CreateAccountResponse>(
-                RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
-                Endpoint.ACCOUNTS,
-                ResponseSpecs.entityWasCreated())
-                .post(null);
+        new UserDashboard().createNewAccount();
+        accounts = new UserSteps(user.getUsername(), user.getPassword()).getAllAccounts();
+        CreateAccountResponse secondAccount = accounts.stream()
+                .max((a1, a2) -> Long.compare(a1.getId(), a2.getId()))
+                .orElseThrow(() -> new RuntimeException("No accounts found"));
+        new UserDashboard().checkAlertMessageAndAccept(
+                BankAlert.NEW_ACCOUNT_CREATED.getMessage() + secondAccount.getAccountNumber());
+        String secondAccountNumber = secondAccount.getAccountNumber();
+        long secondAccountId = secondAccount.getId();
 
-        // ШАГ 5: юзер делает два депозита по 5000 на первый аккаунт
-        String firstAccountNumber = accountResponse.getAccountNumber();
-        String secondAccountNumber = response.getAccountNumber();
+        // Делаем первый депозит по 5000 на первый аккаунт через UI
+        DepositMoney depositPage = new UserDashboard().makeDeposit().getPage(DepositMoney.class);
+        depositPage.chooseAccount().selectAccount(1);
+        String accountNumber = depositPage.getAccountSelector().getSelectedOptionText().split(" ")[0];
 
-        MakeDepositRequest depositRequest1 = MakeDepositRequest.builder()
-                .id((int) accountResponse.getId())
-                .balance(5000.00)
-                .build();
-        new ValidatedCrudRequester<MakeDepositResponse>(
-                RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
-                Endpoint.DEPOSIT,
-                ResponseSpecs.requestReturnsOK())
-                .post(depositRequest1);
+        depositPage.enterAmount("5000.00").makeDeposit();
+        depositPage.checkAlertMessageAndAccept(
+                BankAlert.USER_DEPOSITED_SUCCESSFULLY.getMessage() + "5000.00 to account " + accountNumber + "!");
 
-        MakeDepositRequest depositRequest2 = MakeDepositRequest.builder()
-                .id((int) accountResponse.getId())
-                .balance(5000.00)
-                .build();
-        new ValidatedCrudRequester<MakeDepositResponse>(
-                RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
-                Endpoint.DEPOSIT,
-                ResponseSpecs.requestReturnsOK())
-                .post(depositRequest2);
+        // Делаем второй депозит по 5000 на первый аккаунт через UI
+        depositPage = new UserDashboard().makeDeposit().getPage(DepositMoney.class);
+        depositPage.chooseAccount().selectAccount(1);
+        depositPage.enterAmount("5000.00").makeDeposit();
+        depositPage.checkAlertMessageAndAccept(
+                BankAlert.USER_DEPOSITED_SUCCESSFULLY.getMessage() + "5000.00 to account " + accountNumber + "!");
 
-        // ШАГ 6: юзер делает транзакцию с первого аккаунта на второй
-        Selenide.open("/dashboard");
-        $(Selectors.byText("\uD83D\uDD04 Make a Transfer")).click();
-        $(Selectors.byText("\uD83D\uDD04 Make a Transfer")).shouldBe(Condition.visible);
-        $("select.account-selector").shouldBe(Condition.visible);
-        $("select.account-selector").selectOptionContainingText(firstAccountNumber);
-        $(Selectors.byAttribute("placeholder", "Enter recipient name")).sendKeys("Noname");
-        $(Selectors.byAttribute("placeholder", "Enter recipient account number")).sendKeys(secondAccountNumber);
-        $(Selectors.byAttribute("placeholder", "Enter amount")).sendKeys("10000");
-        $(Selectors.byId("confirmCheck")).click();
-        $(Selectors.byText("\uD83D\uDE80 Send Transfer")).click();
+        TransferMoney transferPage = new UserDashboard().makeTransaction().getPage(TransferMoney.class);
+        transferPage.chooseAccount().selectAccountByText(firstAccountNumber)
+                .enterRecipientName("Noname")
+                .enterRecipientAccountNumber(secondAccountNumber)
+                .enterAmount("10000.00")
+                .clickCheckbox()
+                .makeTransfer();
 
-        // ШАГ 7: Проверяем появление алерта
-        Alert alert = switchTo().alert();
-        String alertText = alert.getText();
+        transferPage.checkAlertMessageAndAccept(
+                BankAlert.USER_TRANSFERRED_SUCCESSFULLY.getMessage() + "10000.00 to account " + secondAccountNumber + "!");
 
-        assertThat(alertText).contains("✅ Successfully transferred $10000 to account " + secondAccountNumber + "!");
-
-        alert.accept();
-
-        // ШАГ 8: Проверяем на UI, что балансы обновились
-        Selenide.refresh();
-        $(Selectors.byText("\uD83D\uDD04 Make a Transfer")).click();
-        $(Selectors.byText("\uD83D\uDD04 Make a Transfer")).shouldBe(Condition.visible);
-        $("select.account-selector").shouldBe(Condition.visible);
-        $$("select.account-selector option").findBy(Condition.text(firstAccountNumber)).shouldHave(Condition.text(firstAccountNumber + " (Balance: $0.00)"));
-        $$("select.account-selector option").findBy(Condition.text(secondAccountNumber)).shouldHave(Condition.text(secondAccountNumber + " (Balance: $10000.00)"));
-
-        // ШАГ 9: Проверяем через API, что транзакция выполнена корректно
-        CreateAccountResponse[] userAccounts = given()
-                .spec(RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()))
-                .get("http://localhost:4111/api/v1/customer/accounts")
-                .then().assertThat()
-                .extract().as(CreateAccountResponse[].class);
-
-        CreateAccountResponse firstAccount = Arrays.stream(userAccounts)
-                .filter(acc -> acc.getId() == accountResponse.getId())
+        List<CreateAccountResponse> finalAccounts = new UserSteps(user.getUsername(), user.getPassword()).getAllAccounts();
+        CreateAccountResponse firstAccount = finalAccounts.stream()
+                .filter(acc -> acc.getId() == firstAccountId)
                 .findFirst()
-                .orElseThrow(() -> new RuntimeException("Account not found: " + accountResponse.getId()));
+                .orElseThrow(() -> new RuntimeException("Account not found: " + firstAccountId));
         assertThat(firstAccount.getBalance()).isZero();
 
-        CreateAccountResponse secondAccount = Arrays.stream(userAccounts)
-                .filter(acc -> acc.getId() == response.getId())
+        CreateAccountResponse finalSecondAccount = finalAccounts.stream()
+                .filter(acc -> acc.getId() == secondAccountId)
                 .findFirst()
-                .orElseThrow(() -> new RuntimeException("Account not found: " + response.getId()));
-        assertThat(secondAccount.getBalance()).isEqualTo(10000.00);
-
-
+                .orElseThrow(() -> new RuntimeException("Account not found: " + secondAccountId));
+        assertThat(finalSecondAccount.getBalance()).isEqualTo(10000.00);
     }
 
 
     @Test
     public void userCanNotMakeTransactionWithInvalidAmountTest() {
-        // ШАГ 1: админ создает юзера
-        CreateUserRequest userRequest = AdminSteps.createUser();
-        // ШАГ 2: юзер логинится в банке
-        String userAuthHeader = new CrudRequester(
-                RequestSpecs.unauthSpec(),
-                Endpoint.LOGIN,
-                ResponseSpecs.requestReturnsOK())
-                .post(LoginUserRequest.builder().username(userRequest.getUsername()).password(userRequest.getPassword()).build())
-                .extract()
-                .header("Authorization");
-        Selenide.open("/");
+        CreateUserRequest user = AdminSteps.createUser();
 
-        executeJavaScript("localStorage.setItem('authToken', arguments[0]);", userAuthHeader);
+        authAsUser(user);
 
-        // ШАГ 3: юзер создает аккаунт
-        CreateAccountResponse accountResponse = new ValidatedCrudRequester<CreateAccountResponse>(
-                RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
-                Endpoint.ACCOUNTS,
-                ResponseSpecs.entityWasCreated())
-                .post(null);
+        new UserDashboard().open().createNewAccount();
+        List<CreateAccountResponse> accounts = new UserSteps(user.getUsername(), user.getPassword()).getAllAccounts();
+        new UserDashboard().checkAlertMessageAndAccept(
+                BankAlert.NEW_ACCOUNT_CREATED.getMessage() + accounts.getFirst().getAccountNumber());
+        String firstAccountNumber = accounts.getFirst().getAccountNumber();
+        long firstAccountId = accounts.getFirst().getId();
 
-        // ШАГ 4: юзер создает еще один аккаунт
-        CreateAccountResponse response = new ValidatedCrudRequester<CreateAccountResponse>(
-                RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
-                Endpoint.ACCOUNTS,
-                ResponseSpecs.entityWasCreated())
-                .post(null);
+        new UserDashboard().createNewAccount();
+        accounts = new UserSteps(user.getUsername(), user.getPassword()).getAllAccounts();
+        CreateAccountResponse secondAccount = accounts.stream()
+                .max((a1, a2) -> Long.compare(a1.getId(), a2.getId()))
+                .orElseThrow(() -> new RuntimeException("No accounts found"));
+        new UserDashboard().checkAlertMessageAndAccept(
+                BankAlert.NEW_ACCOUNT_CREATED.getMessage() + secondAccount.getAccountNumber());
+        String secondAccountNumber = secondAccount.getAccountNumber();
+        long secondAccountId = secondAccount.getId();
 
-        // ШАГ 5: юзер делает два депозита по 5000 на первый аккаунт
-        String firstAccountNumber = accountResponse.getAccountNumber();
-        String secondAccountNumber = response.getAccountNumber();
+        // Делаем первый депозит по 5000 на первый аккаунт через UI
+        DepositMoney depositPage = new UserDashboard().makeDeposit().getPage(DepositMoney.class);
+        depositPage.chooseAccount().selectAccount(1);
+        String accountNumber = depositPage.getAccountSelector().getSelectedOptionText().split(" ")[0];
 
-        MakeDepositRequest depositRequest1 = MakeDepositRequest.builder()
-                .id((int) accountResponse.getId())
-                .balance(5000.00)
-                .build();
-        new ValidatedCrudRequester<MakeDepositResponse>(
-                RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
-                Endpoint.DEPOSIT,
-                ResponseSpecs.requestReturnsOK())
-                .post(depositRequest1);
+        depositPage.enterAmount("5000.00").makeDeposit();
+        depositPage.checkAlertMessageAndAccept(
+                BankAlert.USER_DEPOSITED_SUCCESSFULLY.getMessage() + "5000.00 to account " + accountNumber + "!");
 
-        MakeDepositRequest depositRequest2 = MakeDepositRequest.builder()
-                .id((int) accountResponse.getId())
-                .balance(5000.00)
-                .build();
-        new ValidatedCrudRequester<MakeDepositResponse>(
-                RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
-                Endpoint.DEPOSIT,
-                ResponseSpecs.requestReturnsOK())
-                .post(depositRequest2);
+        // Делаем второй депозит по 5000 на первый аккаунт через UI
+        depositPage = new UserDashboard().makeDeposit().getPage(DepositMoney.class);
+        depositPage.chooseAccount().selectAccount(1);
+        depositPage.enterAmount("5000.00").makeDeposit();
+        depositPage.checkAlertMessageAndAccept(
+                BankAlert.USER_DEPOSITED_SUCCESSFULLY.getMessage() + "5000.00 to account " + accountNumber + "!");
 
-        // ШАГ 6: юзер делает транзакцию с первого аккаунта на второй
-        Selenide.open("/dashboard");
-        $(Selectors.byText("\uD83D\uDD04 Make a Transfer")).click();
-        $(Selectors.byText("\uD83D\uDD04 Make a Transfer")).shouldBe(Condition.visible);
-        $("select.account-selector").shouldBe(Condition.visible);
-        $("select.account-selector").selectOptionContainingText(firstAccountNumber);
-        $(Selectors.byAttribute("placeholder", "Enter recipient name")).sendKeys("Noname");
-        $(Selectors.byAttribute("placeholder", "Enter recipient account number")).sendKeys(secondAccountNumber);
-        $(Selectors.byAttribute("placeholder", "Enter amount")).sendKeys("10000.01");
-        $(Selectors.byId("confirmCheck")).click();
-        $(Selectors.byText("\uD83D\uDE80 Send Transfer")).click();
+        TransferMoney transferPage = new UserDashboard().makeTransaction().getPage(TransferMoney.class);
+        transferPage.chooseAccount().selectAccountByText(firstAccountNumber)
+                .enterRecipientName("Noname")
+                .enterRecipientAccountNumber(secondAccountNumber)
+                .enterAmount("10000.01")
+                .clickCheckbox()
+                .makeTransfer();
 
-        // ШАГ 7: Проверяем появление алерта
-        Alert alert = switchTo().alert();
-        String alertText = alert.getText();
+        transferPage.checkAlertMessageAndAccept(
+                BankAlert.USER_TRANSFERRED_UNSUCCESSFULLY.getMessage());
 
-        assertThat(alertText).contains("❌ Error: Transfer amount cannot exceed 10000");
-
-        alert.accept();
-
-        // ШАГ 8: Проверяем на UI, что балансы не обновились обновились
-        Selenide.refresh();
-        $(Selectors.byText("\uD83D\uDD04 Make a Transfer")).click();
-        $(Selectors.byText("\uD83D\uDD04 Make a Transfer")).shouldBe(Condition.visible);
-        $("select.account-selector").shouldBe(Condition.visible);
-        $$("select.account-selector option").findBy(Condition.text(firstAccountNumber)).shouldHave(Condition.text(firstAccountNumber + " (Balance: $10000.00)"));
-        $$("select.account-selector option").findBy(Condition.text(secondAccountNumber)).shouldHave(Condition.text(secondAccountNumber + " (Balance: $0.00)"));
-
-        // ШАГ 9: Проверяем через API, что транзакция не была выполнена и балансы не изменились
-        CreateAccountResponse[] userAccounts = given()
-                .spec(RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()))
-                .get("http://localhost:4111/api/v1/customer/accounts")
-                .then().assertThat()
-                .extract().as(CreateAccountResponse[].class);
-
-        CreateAccountResponse firstAccount = Arrays.stream(userAccounts)
-                .filter(acc -> acc.getId() == accountResponse.getId())
+        List<CreateAccountResponse> finalAccounts = new UserSteps(user.getUsername(), user.getPassword()).getAllAccounts();
+        CreateAccountResponse firstAccount = finalAccounts.stream()
+                .filter(acc -> acc.getId() == firstAccountId)
                 .findFirst()
-                .orElseThrow(() -> new RuntimeException("Account not found: " + accountResponse.getId()));
+                .orElseThrow(() -> new RuntimeException("Account not found: " + firstAccountId));
         assertThat(firstAccount.getBalance()).isEqualTo(10000.00);
 
-        CreateAccountResponse secondAccount = Arrays.stream(userAccounts)
-                .filter(acc -> acc.getId() == response.getId())
+        CreateAccountResponse finalSecondAccount = finalAccounts.stream()
+                .filter(acc -> acc.getId() == secondAccountId)
                 .findFirst()
-                .orElseThrow(() -> new RuntimeException("Account not found: " + response.getId()));
-        assertThat(secondAccount.getBalance()).isZero();
-
-
+                .orElseThrow(() -> new RuntimeException("Account not found: " + secondAccountId));
+        assertThat(finalSecondAccount.getBalance()).isZero();
     }
-
 }
