@@ -1,9 +1,8 @@
-package ui;
+package ui.iteration2;
 
 import api.models.CreateAccountResponse;
-import api.models.CreateUserRequest;
-import api.requests.steps.AdminSteps;
-import api.requests.steps.UserSteps;
+import api.common.annotations.UserSession;
+import api.common.storage.SessionStorage;
 import org.junit.jupiter.api.Test;
 import ui.pages.BankAlert;
 import ui.pages.DepositMoney;
@@ -16,20 +15,17 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class MakeTransactionTest extends BaseUiTest {
     @Test
+    @UserSession
     public void userCanMakeTransactionTest() {
-        CreateUserRequest user = AdminSteps.createUser();
-
-        authAsUser(user);
-
         new UserDashboard().open().createNewAccount();
-        List<CreateAccountResponse> accounts = new UserSteps(user.getUsername(), user.getPassword()).getAllAccounts();
+        List<CreateAccountResponse> accounts = SessionStorage.getSteps().getAllAccounts();
         new UserDashboard().checkAlertMessageAndAccept(
                 BankAlert.NEW_ACCOUNT_CREATED.getMessage() + accounts.getFirst().getAccountNumber());
         String firstAccountNumber = accounts.getFirst().getAccountNumber();
         long firstAccountId = accounts.getFirst().getId();
 
         new UserDashboard().createNewAccount();
-        accounts = new UserSteps(user.getUsername(), user.getPassword()).getAllAccounts();
+        accounts = SessionStorage.getSteps().getAllAccounts();
         CreateAccountResponse secondAccount = accounts.stream()
                 .max((a1, a2) -> Long.compare(a1.getId(), a2.getId()))
                 .orElseThrow(() -> new RuntimeException("No accounts found"));
@@ -65,7 +61,7 @@ public class MakeTransactionTest extends BaseUiTest {
         transferPage.checkAlertMessageAndAccept(
                 BankAlert.USER_TRANSFERRED_SUCCESSFULLY.getMessage() + "10000.00 to account " + secondAccountNumber + "!");
 
-        List<CreateAccountResponse> finalAccounts = new UserSteps(user.getUsername(), user.getPassword()).getAllAccounts();
+        List<CreateAccountResponse> finalAccounts = SessionStorage.getSteps().getAllAccounts();
         CreateAccountResponse firstAccount = finalAccounts.stream()
                 .filter(acc -> acc.getId() == firstAccountId)
                 .findFirst()
@@ -81,20 +77,17 @@ public class MakeTransactionTest extends BaseUiTest {
 
 
     @Test
+    @UserSession
     public void userCanNotMakeTransactionWithInvalidAmountTest() {
-        CreateUserRequest user = AdminSteps.createUser();
-
-        authAsUser(user);
-
         new UserDashboard().open().createNewAccount();
-        List<CreateAccountResponse> accounts = new UserSteps(user.getUsername(), user.getPassword()).getAllAccounts();
+        List<CreateAccountResponse> accounts = SessionStorage.getSteps().getAllAccounts();
         new UserDashboard().checkAlertMessageAndAccept(
                 BankAlert.NEW_ACCOUNT_CREATED.getMessage() + accounts.getFirst().getAccountNumber());
         String firstAccountNumber = accounts.getFirst().getAccountNumber();
         long firstAccountId = accounts.getFirst().getId();
 
         new UserDashboard().createNewAccount();
-        accounts = new UserSteps(user.getUsername(), user.getPassword()).getAllAccounts();
+        accounts = SessionStorage.getSteps().getAllAccounts();
         CreateAccountResponse secondAccount = accounts.stream()
                 .max((a1, a2) -> Long.compare(a1.getId(), a2.getId()))
                 .orElseThrow(() -> new RuntimeException("No accounts found"));
@@ -130,7 +123,7 @@ public class MakeTransactionTest extends BaseUiTest {
         transferPage.checkAlertMessageAndAccept(
                 BankAlert.USER_TRANSFERRED_UNSUCCESSFULLY.getMessage());
 
-        List<CreateAccountResponse> finalAccounts = new UserSteps(user.getUsername(), user.getPassword()).getAllAccounts();
+        List<CreateAccountResponse> finalAccounts = SessionStorage.getSteps().getAllAccounts();
         CreateAccountResponse firstAccount = finalAccounts.stream()
                 .filter(acc -> acc.getId() == firstAccountId)
                 .findFirst()

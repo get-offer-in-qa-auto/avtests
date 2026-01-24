@@ -1,23 +1,30 @@
-package ui;
+package ui.iteration2;
 
-import api.iteration2.BaseTest;
 import api.models.CreateUserRequest;
 import api.specs.RequestSpecs;
+import api.common.extensions.AdminSessionExtension;
+import api.common.extensions.BrowserMatchExtension;
+import api.common.extensions.UserSessionExtension;
+import api.iteration2.BaseTest;
 import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.Selenide;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.Map;
 
 import static com.codeborne.selenide.Selenide.executeJavaScript;
 
+@ExtendWith(AdminSessionExtension.class)
+@ExtendWith(UserSessionExtension.class)
+@ExtendWith(BrowserMatchExtension.class)
 public class BaseUiTest extends BaseTest {
     @BeforeAll
     public static void setupSelenoid() {
-        Configuration.remote = "http://localhost:4444/wd/hub";
-        Configuration.baseUrl = "http://host.docker.internal:3000";
-        Configuration.browser = "chrome";
-        Configuration.browserSize = "1920x1080";
+        Configuration.remote = api.configs.Config.getProperty("uiRemote");
+        Configuration.baseUrl = api.configs.Config.getProperty("uiBaseUrl");
+        Configuration.browser = api.configs.Config.getProperty("browser");
+        Configuration.browserSize = api.configs.Config.getProperty("browserSize");
         Configuration.timeout = 10000; // 10 seconds timeout
         Configuration.pageLoadTimeout = 30000; // 30 seconds page load timeout
 

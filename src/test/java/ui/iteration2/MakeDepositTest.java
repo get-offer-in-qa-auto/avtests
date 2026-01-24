@@ -1,9 +1,8 @@
-package ui;
+package ui.iteration2;
 
 import api.models.CreateAccountResponse;
-import api.models.CreateUserRequest;
-import api.requests.steps.AdminSteps;
-import api.requests.steps.UserSteps;
+import api.common.annotations.UserSession;
+import api.common.storage.SessionStorage;
 import org.junit.jupiter.api.Test;
 import ui.pages.BankAlert;
 import ui.pages.DepositMoney;
@@ -15,15 +14,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class MakeDepositTest extends BaseUiTest {
     @Test
+    @UserSession
     public void userCanMakeDepositTest() {
-        CreateUserRequest user = AdminSteps.createUser();
-
-        authAsUser(user);
-        
         new UserDashboard().open().createNewAccount();
         
-        List<CreateAccountResponse> createdAccounts = new UserSteps(user.getUsername(), user.getPassword())
-                .getAllAccounts();
+        List<CreateAccountResponse> createdAccounts = SessionStorage.getSteps().getAllAccounts();
         
         new UserDashboard().checkAlertMessageAndAccept(
                 BankAlert.NEW_ACCOUNT_CREATED.getMessage() + createdAccounts.getFirst().getAccountNumber());
@@ -38,7 +33,7 @@ public class MakeDepositTest extends BaseUiTest {
                 BankAlert.USER_DEPOSITED_SUCCESSFULLY.getMessage() + "5000.00 to account " + accountNumber + "!");
 
         // Проверяем, что депозит сделан на API
-        List<CreateAccountResponse> accounts = new UserSteps(user.getUsername(), user.getPassword()).getAllAccounts();
+        List<CreateAccountResponse> accounts = SessionStorage.getSteps().getAllAccounts();
         CreateAccountResponse accountWithDeposit = accounts.stream()
                 .filter(acc -> acc.getAccountNumber().equals(accountNumber))
                 .findFirst()
@@ -48,15 +43,11 @@ public class MakeDepositTest extends BaseUiTest {
     }
 
     @Test
+    @UserSession
     public void userCanNotMakeDepositWithInvalidAmountTest() {
-        CreateUserRequest user = AdminSteps.createUser();
-
-        authAsUser(user);
-
         new UserDashboard().open().createNewAccount();
 
-        List<CreateAccountResponse> createdAccounts = new UserSteps(user.getUsername(), user.getPassword())
-                .getAllAccounts();
+        List<CreateAccountResponse> createdAccounts = SessionStorage.getSteps().getAllAccounts();
 
         new UserDashboard().checkAlertMessageAndAccept(
                 BankAlert.NEW_ACCOUNT_CREATED.getMessage() + createdAccounts.getFirst().getAccountNumber());
@@ -71,7 +62,7 @@ public class MakeDepositTest extends BaseUiTest {
                 BankAlert.USER_DEPOSITED_UNSUCCESSFULLY.getMessage());
 
         // Проверяем, что депозит не был сделан на API
-        List<CreateAccountResponse> accounts = new UserSteps(user.getUsername(), user.getPassword()).getAllAccounts();
+        List<CreateAccountResponse> accounts = SessionStorage.getSteps().getAllAccounts();
         CreateAccountResponse accountWithoutDeposit = accounts.stream()
                 .filter(acc -> acc.getAccountNumber().equals(accountNumber))
                 .findFirst()
