@@ -45,7 +45,7 @@ public class MakeTransactionTest extends BaseUiTest {
 
         // Делаем второй депозит по 5000 на первый аккаунт через UI
         depositPage = new UserDashboard().makeDeposit().getPage(DepositMoney.class);
-        depositPage.chooseAccount().selectAccount(1);
+        depositPage.chooseAccount().selectAccountByText(accountNumber);
         depositPage.enterAmount("5000.00").makeDeposit();
         depositPage.checkAlertMessageAndAccept(
                 BankAlert.USER_DEPOSITED_SUCCESSFULLY.getMessage() + "5000.00 to account " + accountNumber + "!");
@@ -98,19 +98,18 @@ public class MakeTransactionTest extends BaseUiTest {
 
         // Делаем первый депозит по 5000 на первый аккаунт через UI
         DepositMoney depositPage = new UserDashboard().makeDeposit().getPage(DepositMoney.class);
-        depositPage.chooseAccount().selectAccount(1);
-        String accountNumber = depositPage.getAccountSelector().getSelectedOptionText().split(" ")[0];
+        depositPage.chooseAccount().selectAccountByText(firstAccountNumber);
 
         depositPage.enterAmount("5000.00").makeDeposit();
         depositPage.checkAlertMessageAndAccept(
-                BankAlert.USER_DEPOSITED_SUCCESSFULLY.getMessage() + "5000.00 to account " + accountNumber + "!");
+                BankAlert.USER_DEPOSITED_SUCCESSFULLY.getMessage() + "5000.00 to account " + firstAccountNumber + "!");
 
         // Делаем второй депозит по 5000 на первый аккаунт через UI
         depositPage = new UserDashboard().makeDeposit().getPage(DepositMoney.class);
-        depositPage.chooseAccount().selectAccount(1);
+        depositPage.chooseAccount().selectAccountByText(firstAccountNumber);
         depositPage.enterAmount("5000.00").makeDeposit();
         depositPage.checkAlertMessageAndAccept(
-                BankAlert.USER_DEPOSITED_SUCCESSFULLY.getMessage() + "5000.00 to account " + accountNumber + "!");
+                BankAlert.USER_DEPOSITED_SUCCESSFULLY.getMessage() + "5000.00 to account " + firstAccountNumber + "!");
 
         TransferMoney transferPage = new UserDashboard().makeTransaction().getPage(TransferMoney.class);
         transferPage.chooseAccount().selectAccountByText(firstAccountNumber)

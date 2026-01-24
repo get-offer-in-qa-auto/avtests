@@ -12,6 +12,9 @@ services:
       - "/var/run/docker.sock:/var/run/docker.sock"
     networks:
       - selenoid-network
+    # Add extra_hosts to allow browser containers to access host network
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     command: ["-conf", "/etc/selenoid/browsers.json", "-video-dir", "/opt/selenoid/video"]
 
   selenoid-ui:

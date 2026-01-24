@@ -28,6 +28,11 @@ public class DepositMoney extends BasePage<DepositMoney> {
         return this;
     }
 
+    public DepositMoney selectAccountByText(String accountNumber) {
+        accountSelector.selectOptionContainingText(accountNumber);
+        return this;
+    }
+
     public DepositMoney enterAmount(String amount) {
         enterAmount.sendKeys(amount);
         return this;

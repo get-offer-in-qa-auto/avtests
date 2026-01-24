@@ -11,6 +11,7 @@ import com.codeborne.selenide.Selenide;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import static com.codeborne.selenide.Selenide.executeJavaScript;
@@ -22,15 +23,19 @@ public class BaseUiTest extends BaseTest {
     @BeforeAll
     public static void setupSelenoid() {
         Configuration.remote = api.configs.Config.getProperty("uiRemote");
-        Configuration.baseUrl = api.configs.Config.getProperty("uiBaseUrl");
+        // Use Config helper method to get URL suitable for browser containers
+        Configuration.baseUrl = api.configs.Config.getUiBaseUrlForBrowsers();
         Configuration.browser = api.configs.Config.getProperty("browser");
         Configuration.browserSize = api.configs.Config.getProperty("browserSize");
-        Configuration.timeout = 10000; // 10 seconds timeout
-        Configuration.pageLoadTimeout = 30000; // 30 seconds page load timeout
+        Configuration.timeout = 15000; // 15 seconds timeout for element operations
+        Configuration.pageLoadTimeout = 60000; // 60 seconds page load timeout
 
-        Configuration.browserCapabilities.setCapability("selenoid:options",
-                Map.of("enableVNC", true, "enableLog", true)
-        );
+        // Configure Selenoid options
+        Map<String, Object> selenoidOptions = new HashMap<>();
+        selenoidOptions.put("enableVNC", true);
+        selenoidOptions.put("enableLog", true);
+        
+        Configuration.browserCapabilities.setCapability("selenoid:options", selenoidOptions);
     }
 
     public void authAsUser(String username, String password) {
