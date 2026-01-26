@@ -68,12 +68,9 @@ public class ChangeNameTest extends BaseUiTest {
 
         // Проверяем на UI, что имя не изменилось
         editProfilePage = new EditPanel().open().getPage(EditPanel.class);
-        if (originalName != null && !originalName.isEmpty()) {
-            editProfilePage.getEnterNewName().shouldHave(Condition.value(originalName));
-        } else {
-            String displayedValue = editProfilePage.getEnterNewName().getValue();
-            assertThat(displayedValue).isNullOrEmpty();
-        }
+        String displayedValue = editProfilePage.getEnterNewName().getValue();
+        String expectedValue = originalName != null ? originalName : "";
+        assertThat(displayedValue).isEqualTo(expectedValue);
 
         // Проверяем на API, что имя не изменилось
         ChangeNameResponse updatedProfile = (ChangeNameResponse) new ValidatedCrudRequester<ChangeNameResponse>(
@@ -104,12 +101,9 @@ public class ChangeNameTest extends BaseUiTest {
 
         // Проверяем на UI, что имя не изменилось
         editProfilePage = new EditPanel().open().getPage(EditPanel.class);
-        if (originalName != null && !originalName.isEmpty()) {
-            editProfilePage.getEnterNewName().shouldHave(Condition.value(originalName));
-        } else {
-            String displayedValue = editProfilePage.getEnterNewName().getValue();
-            assertThat(displayedValue).isNullOrEmpty();
-        }
+        String displayedValue = editProfilePage.getEnterNewName().getValue();
+        String expectedValue = originalName != null ? originalName : "";
+        assertThat(displayedValue).isEqualTo(expectedValue);
 
         // Проверяем на API, что имя не изменилось
         ChangeNameResponse updatedProfile = (ChangeNameResponse) new ValidatedCrudRequester<ChangeNameResponse>(
@@ -140,12 +134,9 @@ public class ChangeNameTest extends BaseUiTest {
 
         // Проверяем на UI, что имя не изменилось
         editProfilePage = new EditPanel().open().getPage(EditPanel.class);
-        if (originalName != null && !originalName.isEmpty()) {
-            editProfilePage.getEnterNewName().shouldHave(Condition.value(originalName));
-        } else {
-            String displayedValue = editProfilePage.getEnterNewName().getValue();
-            assertThat(displayedValue).isNullOrEmpty();
-        }
+        String displayedValue = editProfilePage.getEnterNewName().getValue();
+        String expectedValue = originalName != null ? originalName : "";
+        assertThat(displayedValue).isEqualTo(expectedValue);
 
         // Проверяем на API, что имя не изменилось
         ChangeNameResponse updatedProfile = (ChangeNameResponse) new ValidatedCrudRequester<ChangeNameResponse>(
@@ -176,12 +167,9 @@ public class ChangeNameTest extends BaseUiTest {
 
         // Проверяем на UI, что имя не изменилось
         editProfilePage = new EditPanel().open().getPage(EditPanel.class);
-        if (originalName != null && !originalName.isEmpty()) {
-            editProfilePage.getEnterNewName().shouldHave(Condition.value(originalName));
-        } else {
-            String displayedValue = editProfilePage.getEnterNewName().getValue();
-            assertThat(displayedValue).isNullOrEmpty();
-        }
+        String displayedValue = editProfilePage.getEnterNewName().getValue();
+        String expectedValue = originalName != null ? originalName : "";
+        assertThat(displayedValue).isEqualTo(expectedValue);
 
         // Проверяем на API, что имя не изменилось
         ChangeNameResponse updatedProfile = (ChangeNameResponse) new ValidatedCrudRequester<ChangeNameResponse>(
