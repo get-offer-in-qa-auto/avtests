@@ -1,5 +1,6 @@
 package ui.pages;
 
+import api.common.utils.RetryUtils;
 import com.codeborne.selenide.Selectors;
 import com.codeborne.selenide.SelenideElement;
 import lombok.Getter;
@@ -32,7 +33,19 @@ public class TransferMoney extends BasePage<TransferMoney> {
     }
 
     public TransferMoney selectAccountByText(String accountNumber) {
-        accountSelector.selectOptionContainingText(accountNumber);
+        RetryUtils.retry(
+                () -> {
+                    try {
+                        accountSelector.selectOptionContainingText(accountNumber);
+                        return true;
+                    } catch (Exception e) {
+                        return false;
+                    }
+                },
+                result -> result,
+                3,
+                1000
+        );
         return this;
     }
 

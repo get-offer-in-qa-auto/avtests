@@ -1,6 +1,7 @@
 package api.helpers;
 
 import api.models.CreateAccountResponse;
+import api.requests.skelethon.requesters.CrudRequester;
 import api.requests.skelethon.requesters.ValidatedCrudRequester;
 import api.specs.RequestSpecs;
 import api.specs.ResponseSpecs;
@@ -14,11 +15,13 @@ public class AccountHelper {
     private AccountHelper() {}
 
     private static List<MakeDepositResponse> getAccountsList(String username, String password) {
-        ChangeNameResponse profile = (ChangeNameResponse) new ValidatedCrudRequester<ChangeNameResponse>(
+        ChangeNameResponse profile = new CrudRequester(
                 RequestSpecs.authAsUser(username, password),
                 Endpoint.PROFILE,
                 ResponseSpecs.requestReturnsOK())
-                .get(0);
+                .getAll(ChangeNameResponse.class)
+                .extract()
+                .as(ChangeNameResponse.class);
 
         return profile.getAccounts();
     }

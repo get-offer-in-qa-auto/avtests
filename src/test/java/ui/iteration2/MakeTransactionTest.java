@@ -1,5 +1,6 @@
 package ui.iteration2;
 
+import api.common.utils.RetryUtils;
 import api.models.CreateAccountResponse;
 import api.common.annotations.UserSession;
 import api.common.storage.SessionStorage;
@@ -18,14 +19,24 @@ public class MakeTransactionTest extends BaseUiTest {
     @UserSession
     public void userCanMakeTransactionTest() {
         new UserDashboard().open().createNewAccount();
-        List<CreateAccountResponse> accounts = SessionStorage.getSteps().getAllAccounts();
+        List<CreateAccountResponse> accounts = RetryUtils.retry(
+                () -> SessionStorage.getSteps().getAllAccounts(),
+                result -> result != null && !result.isEmpty(),
+                3,
+                1000
+        );
         new UserDashboard().checkAlertMessageAndAccept(
                 BankAlert.NEW_ACCOUNT_CREATED.getMessage() + accounts.getFirst().getAccountNumber());
         String firstAccountNumber = accounts.getFirst().getAccountNumber();
         long firstAccountId = accounts.getFirst().getId();
 
         new UserDashboard().createNewAccount();
-        accounts = SessionStorage.getSteps().getAllAccounts();
+        accounts = RetryUtils.retry(
+                () -> SessionStorage.getSteps().getAllAccounts(),
+                result -> result != null && result.size() >= 2,
+                3,
+                1000
+        );
         CreateAccountResponse secondAccount = accounts.stream()
                 .max((a1, a2) -> Long.compare(a1.getId(), a2.getId()))
                 .orElseThrow(() -> new RuntimeException("No accounts found"));
@@ -36,19 +47,33 @@ public class MakeTransactionTest extends BaseUiTest {
 
         // Делаем первый депозит по 5000 на первый аккаунт через UI
         DepositMoney depositPage = new UserDashboard().makeDeposit().getPage(DepositMoney.class);
-        depositPage.chooseAccount().selectAccount(1);
-        String accountNumber = depositPage.getAccountSelector().getSelectedOptionText().split(" ")[0];
+        depositPage.chooseAccount().selectAccountByText(firstAccountNumber);
 
         depositPage.enterAmount("5000.00").makeDeposit();
         depositPage.checkAlertMessageAndAccept(
-                BankAlert.USER_DEPOSITED_SUCCESSFULLY.getMessage() + "5000.00 to account " + accountNumber + "!");
+                BankAlert.USER_DEPOSITED_SUCCESSFULLY.getMessage() + "5000.00 to account " + firstAccountNumber + "!");
 
         // Делаем второй депозит по 5000 на первый аккаунт через UI
         depositPage = new UserDashboard().makeDeposit().getPage(DepositMoney.class);
-        depositPage.chooseAccount().selectAccountByText(accountNumber);
+        depositPage.chooseAccount().selectAccountByText(firstAccountNumber);
         depositPage.enterAmount("5000.00").makeDeposit();
         depositPage.checkAlertMessageAndAccept(
-                BankAlert.USER_DEPOSITED_SUCCESSFULLY.getMessage() + "5000.00 to account " + accountNumber + "!");
+                BankAlert.USER_DEPOSITED_SUCCESSFULLY.getMessage() + "5000.00 to account " + firstAccountNumber + "!");
+
+        // Ждем обновления баланса после депозитов перед переводом
+        RetryUtils.retry(
+                () -> {
+                    List<CreateAccountResponse> accountsAfterDeposits = SessionStorage.getSteps().getAllAccounts();
+                    CreateAccountResponse account = accountsAfterDeposits.stream()
+                            .filter(acc -> acc.getAccountNumber().equals(firstAccountNumber))
+                            .findFirst()
+                            .orElse(null);
+                    return account != null && account.getBalance() >= 10000.00;
+                },
+                result -> result,
+                5,
+                1000
+        );
 
         TransferMoney transferPage = new UserDashboard().makeTransaction().getPage(TransferMoney.class);
         transferPage.chooseAccount().selectAccountByText(firstAccountNumber)
@@ -80,14 +105,24 @@ public class MakeTransactionTest extends BaseUiTest {
     @UserSession
     public void userCanNotMakeTransactionWithInvalidAmountTest() {
         new UserDashboard().open().createNewAccount();
-        List<CreateAccountResponse> accounts = SessionStorage.getSteps().getAllAccounts();
+        List<CreateAccountResponse> accounts = RetryUtils.retry(
+                () -> SessionStorage.getSteps().getAllAccounts(),
+                result -> result != null && !result.isEmpty(),
+                3,
+                1000
+        );
         new UserDashboard().checkAlertMessageAndAccept(
                 BankAlert.NEW_ACCOUNT_CREATED.getMessage() + accounts.getFirst().getAccountNumber());
         String firstAccountNumber = accounts.getFirst().getAccountNumber();
         long firstAccountId = accounts.getFirst().getId();
 
         new UserDashboard().createNewAccount();
-        accounts = SessionStorage.getSteps().getAllAccounts();
+        accounts = RetryUtils.retry(
+                () -> SessionStorage.getSteps().getAllAccounts(),
+                result -> result != null && result.size() >= 2,
+                3,
+                1000
+        );
         CreateAccountResponse secondAccount = accounts.stream()
                 .max((a1, a2) -> Long.compare(a1.getId(), a2.getId()))
                 .orElseThrow(() -> new RuntimeException("No accounts found"));

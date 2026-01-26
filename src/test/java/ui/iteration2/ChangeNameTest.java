@@ -3,6 +3,7 @@ package ui.iteration2;
 import api.common.annotations.UserSession;
 import api.common.storage.SessionStorage;
 import api.requests.skelethon.Endpoint;
+import api.requests.skelethon.requesters.CrudRequester;
 import api.requests.skelethon.requesters.ValidatedCrudRequester;
 import api.specs.RequestSpecs;
 import api.specs.ResponseSpecs;
@@ -21,11 +22,13 @@ public class ChangeNameTest extends BaseUiTest {
     @UserSession
     public void userCanChangeNameTest() {
         // Получаем исходное имя через API
-        ChangeNameResponse initialProfile = (ChangeNameResponse) new ValidatedCrudRequester<ChangeNameResponse>(
+        ChangeNameResponse initialProfile = new CrudRequester(
                 RequestSpecs.authAsUser(SessionStorage.getUser().getUsername(), SessionStorage.getUser().getPassword()),
                 Endpoint.PROFILE,
                 ResponseSpecs.requestReturnsOK())
-                .get(0);
+                .getAll(ChangeNameResponse.class)
+                .extract()
+                .as(ChangeNameResponse.class);
         String originalName = initialProfile != null ? initialProfile.getName() : null;
 
         // Меняем имя через UI
@@ -39,11 +42,13 @@ public class ChangeNameTest extends BaseUiTest {
         editProfilePage.getEnterNewName().shouldHave(Condition.value(newName));
 
         // Проверяем на API, что имя изменилось
-        ChangeNameResponse updatedProfile = (ChangeNameResponse) new ValidatedCrudRequester<ChangeNameResponse>(
+        ChangeNameResponse updatedProfile = new CrudRequester(
                 RequestSpecs.authAsUser(SessionStorage.getUser().getUsername(), SessionStorage.getUser().getPassword()),
                 Endpoint.PROFILE,
                 ResponseSpecs.requestReturnsOK())
-                .get(0);
+                .getAll(ChangeNameResponse.class)
+                .extract()
+                .as(ChangeNameResponse.class);
         assertThat(updatedProfile).isNotNull();
         assertThat(updatedProfile.getName()).isEqualTo(newName);
         assertThat(updatedProfile.getName()).isNotEqualTo(originalName);
@@ -53,11 +58,13 @@ public class ChangeNameTest extends BaseUiTest {
     @UserSession
     public void userCanNotLeaveNameEmptyTest() {
         // Получаем исходное имя через API
-        ChangeNameResponse initialProfile = (ChangeNameResponse) new ValidatedCrudRequester<ChangeNameResponse>(
+        ChangeNameResponse initialProfile = new CrudRequester(
                 RequestSpecs.authAsUser(SessionStorage.getUser().getUsername(), SessionStorage.getUser().getPassword()),
                 Endpoint.PROFILE,
                 ResponseSpecs.requestReturnsOK())
-                .get(0);
+                .getAll(ChangeNameResponse.class)
+                .extract()
+                .as(ChangeNameResponse.class);
         String originalName = initialProfile != null ? initialProfile.getName() : null;
 
         // Меняем имя через UI
@@ -76,11 +83,13 @@ public class ChangeNameTest extends BaseUiTest {
         }
 
         // Проверяем на API, что имя не изменилось
-        ChangeNameResponse updatedProfile = (ChangeNameResponse) new ValidatedCrudRequester<ChangeNameResponse>(
+        ChangeNameResponse updatedProfile = new CrudRequester(
                 RequestSpecs.authAsUser(SessionStorage.getUser().getUsername(), SessionStorage.getUser().getPassword()),
                 Endpoint.PROFILE,
                 ResponseSpecs.requestReturnsOK())
-                .get(0);
+                .getAll(ChangeNameResponse.class)
+                .extract()
+                .as(ChangeNameResponse.class);
         String updatedName = updatedProfile != null ? updatedProfile.getName() : null;
         assertThat(updatedName).isEqualTo(originalName);
     }
@@ -89,18 +98,20 @@ public class ChangeNameTest extends BaseUiTest {
     @UserSession
     public void userCanNotChangeNameWithNumbers() {
         // Получаем исходное имя через API
-        ChangeNameResponse initialProfile = (ChangeNameResponse) new ValidatedCrudRequester<ChangeNameResponse>(
+        ChangeNameResponse initialProfile = new CrudRequester(
                 RequestSpecs.authAsUser(SessionStorage.getUser().getUsername(), SessionStorage.getUser().getPassword()),
                 Endpoint.PROFILE,
                 ResponseSpecs.requestReturnsOK())
-                .get(0);
+                .getAll(ChangeNameResponse.class)
+                .extract()
+                .as(ChangeNameResponse.class);
         String originalName = initialProfile != null ? initialProfile.getName() : null;
 
         // Меняем имя через UI
         EditPanel editProfilePage = new UserDashboard().open().changeName().getPage(EditPanel.class);
         editProfilePage.changeName("Alex Petrov93");
         editProfilePage.checkAlertMessageAndAccept(
-                BankAlert.USER_CANNOT_CHANGE_NAME_WITH_NUMBERS.getMessage());
+                "Name must contain two words with letters only");
 
         // Проверяем на UI, что имя не изменилось
         editProfilePage = new EditPanel().open().getPage(EditPanel.class);
@@ -112,11 +123,13 @@ public class ChangeNameTest extends BaseUiTest {
         }
 
         // Проверяем на API, что имя не изменилось
-        ChangeNameResponse updatedProfile = (ChangeNameResponse) new ValidatedCrudRequester<ChangeNameResponse>(
+        ChangeNameResponse updatedProfile = new CrudRequester(
                 RequestSpecs.authAsUser(SessionStorage.getUser().getUsername(), SessionStorage.getUser().getPassword()),
                 Endpoint.PROFILE,
                 ResponseSpecs.requestReturnsOK())
-                .get(0);
+                .getAll(ChangeNameResponse.class)
+                .extract()
+                .as(ChangeNameResponse.class);
         String updatedName = updatedProfile != null ? updatedProfile.getName() : null;
         assertThat(updatedName).isEqualTo(originalName);
     }
@@ -125,11 +138,13 @@ public class ChangeNameTest extends BaseUiTest {
     @UserSession
     public void userCanNotChangeNameWithSymbols() {
         // Получаем исходное имя через API
-        ChangeNameResponse initialProfile = (ChangeNameResponse) new ValidatedCrudRequester<ChangeNameResponse>(
+        ChangeNameResponse initialProfile = new CrudRequester(
                 RequestSpecs.authAsUser(SessionStorage.getUser().getUsername(), SessionStorage.getUser().getPassword()),
                 Endpoint.PROFILE,
                 ResponseSpecs.requestReturnsOK())
-                .get(0);
+                .getAll(ChangeNameResponse.class)
+                .extract()
+                .as(ChangeNameResponse.class);
         String originalName = initialProfile != null ? initialProfile.getName() : null;
 
         // Меняем имя через UI
@@ -148,11 +163,13 @@ public class ChangeNameTest extends BaseUiTest {
         }
 
         // Проверяем на API, что имя не изменилось
-        ChangeNameResponse updatedProfile = (ChangeNameResponse) new ValidatedCrudRequester<ChangeNameResponse>(
+        ChangeNameResponse updatedProfile = new CrudRequester(
                 RequestSpecs.authAsUser(SessionStorage.getUser().getUsername(), SessionStorage.getUser().getPassword()),
                 Endpoint.PROFILE,
                 ResponseSpecs.requestReturnsOK())
-                .get(0);
+                .getAll(ChangeNameResponse.class)
+                .extract()
+                .as(ChangeNameResponse.class);
         String updatedName = updatedProfile != null ? updatedProfile.getName() : null;
         assertThat(updatedName).isEqualTo(originalName);
     }
@@ -161,11 +178,13 @@ public class ChangeNameTest extends BaseUiTest {
     @UserSession
     public void userCanNotChangeNameWithSpace() {
         // Получаем исходное имя через API
-        ChangeNameResponse initialProfile = (ChangeNameResponse) new ValidatedCrudRequester<ChangeNameResponse>(
+        ChangeNameResponse initialProfile = new CrudRequester(
                 RequestSpecs.authAsUser(SessionStorage.getUser().getUsername(), SessionStorage.getUser().getPassword()),
                 Endpoint.PROFILE,
                 ResponseSpecs.requestReturnsOK())
-                .get(0);
+                .getAll(ChangeNameResponse.class)
+                .extract()
+                .as(ChangeNameResponse.class);
         String originalName = initialProfile != null ? initialProfile.getName() : null;
 
         // Меняем имя через UI
@@ -184,11 +203,13 @@ public class ChangeNameTest extends BaseUiTest {
         }
 
         // Проверяем на API, что имя не изменилось
-        ChangeNameResponse updatedProfile = (ChangeNameResponse) new ValidatedCrudRequester<ChangeNameResponse>(
+        ChangeNameResponse updatedProfile = new CrudRequester(
                 RequestSpecs.authAsUser(SessionStorage.getUser().getUsername(), SessionStorage.getUser().getPassword()),
                 Endpoint.PROFILE,
                 ResponseSpecs.requestReturnsOK())
-                .get(0);
+                .getAll(ChangeNameResponse.class)
+                .extract()
+                .as(ChangeNameResponse.class);
         String updatedName = updatedProfile != null ? updatedProfile.getName() : null;
         assertThat(updatedName).isEqualTo(originalName);
     }

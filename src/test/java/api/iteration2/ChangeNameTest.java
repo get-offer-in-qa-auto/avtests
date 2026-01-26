@@ -26,13 +26,23 @@ public class ChangeNameTest extends BaseTest {
 
         ChangeNameRequest changeNameRequest = RandomModelGenerator.generate(ChangeNameRequest.class);
 
-        ChangeNameResponse changeNameResponse = new ValidatedCrudRequester<ChangeNameResponse>(
+        // Обновляем имя через PUT
+        new ValidatedCrudRequester<ChangeNameResponse>(
                 RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
                 Endpoint.PROFILE,
                 ResponseSpecs.requestReturnsOK())
-                .post(changeNameRequest);
+                .update(0, changeNameRequest);
 
-        ModelAssertions.assertThatModels(changeNameRequest, changeNameResponse).match();
+        // Получаем обновленный профиль через GET для проверки
+        ChangeNameResponse updatedProfile = new CrudRequester(
+                RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
+                Endpoint.PROFILE,
+                ResponseSpecs.requestReturnsOK())
+                .getAll(ChangeNameResponse.class)
+                .extract()
+                .as(ChangeNameResponse.class);
+
+        ModelAssertions.assertThatModels(changeNameRequest, updatedProfile).match();
     }
 
     @ParameterizedTest
@@ -40,11 +50,13 @@ public class ChangeNameTest extends BaseTest {
     public void userCanNotChangeToInvalidName(String invalidName, String errorType) {
         CreateUserRequest userRequest = AdminSteps.createUser();
 
-        ChangeNameResponse nameBeforeResponse = (ChangeNameResponse) new ValidatedCrudRequester<ChangeNameResponse>(
+        ChangeNameResponse nameBeforeResponse = new CrudRequester(
                 RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
                 Endpoint.PROFILE,
                 ResponseSpecs.requestReturnsOK())
-                .get(0);
+                .getAll(ChangeNameResponse.class)
+                .extract()
+                .as(ChangeNameResponse.class);
 
         ChangeNameRequest changeNameRequest = ChangeNameRequest.builder()
                 .name(invalidName)
@@ -53,13 +65,15 @@ public class ChangeNameTest extends BaseTest {
         new CrudRequester(RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
                 Endpoint.PROFILE,
                 ResponseSpecs.requestReturnsBadRequestWithMessage(errorType))
-                .post(changeNameRequest);
+                .update(0, changeNameRequest);
 
-        ChangeNameResponse nameAfterResponse = (ChangeNameResponse) new ValidatedCrudRequester<ChangeNameResponse>(
+        ChangeNameResponse nameAfterResponse = new CrudRequester(
                 RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
                 Endpoint.PROFILE,
                 ResponseSpecs.requestReturnsOK())
-                .get(0);
+                .getAll(ChangeNameResponse.class)
+                .extract()
+                .as(ChangeNameResponse.class);
 
         ModelAssertions.assertThatModels(nameBeforeResponse, nameAfterResponse).match();
     }
