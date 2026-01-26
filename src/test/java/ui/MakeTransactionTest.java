@@ -1,5 +1,6 @@
 package ui;
 
+import api.generators.RandomData;
 import api.models.CreateAccountResponse;
 import api.models.CreateUserRequest;
 import api.requests.steps.AdminSteps;
@@ -11,10 +12,14 @@ import ui.pages.TransferMoney;
 import ui.pages.UserDashboard;
 
 import java.util.List;
+import java.util.Locale;
+import java.util.Random;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class MakeTransactionTest extends BaseUiTest {
+    private static final Random random = new Random();
+
     @Test
     public void userCanMakeTransactionTest() {
         CreateUserRequest user = AdminSteps.createUser();
@@ -38,32 +43,45 @@ public class MakeTransactionTest extends BaseUiTest {
         String secondAccountNumber = secondAccount.getAccountNumber();
         long secondAccountId = secondAccount.getId();
 
-        // Делаем первый депозит по 5000 на первый аккаунт через UI
+        // Делаем первый депозит на первый аккаунт через UI
         DepositMoney depositPage = new UserDashboard().makeDeposit().getPage(DepositMoney.class);
-        depositPage.chooseAccount().selectAccount(1);
+        int firstAccountIndex = 1;
+        for (int i = 0; i < accounts.size(); i++) {
+            if (accounts.get(i).getAccountNumber().equals(firstAccountNumber)) {
+                firstAccountIndex = i + 1;
+                break;
+            }
+        }
+        depositPage.chooseAccount().selectAccount(firstAccountIndex);
         String accountNumber = depositPage.getAccountSelector().getSelectedOptionText().split(" ")[0];
 
-        depositPage.enterAmount("5000.00").makeDeposit();
+        String firstDepositAmount = RandomData.getDepositAmount();
+        depositPage.enterAmount(firstDepositAmount).makeDeposit();
         depositPage.checkAlertMessageAndAccept(
-                BankAlert.USER_DEPOSITED_SUCCESSFULLY.getMessage() + "5000.00 to account " + accountNumber + "!");
+                BankAlert.USER_DEPOSITED_SUCCESSFULLY.getMessage() + firstDepositAmount + " to account " + accountNumber + "!");
 
-        // Делаем второй депозит по 5000 на первый аккаунт через UI
+        // Делаем второй депозит на первый аккаунт через UI
         depositPage = new UserDashboard().makeDeposit().getPage(DepositMoney.class);
-        depositPage.chooseAccount().selectAccount(1);
-        depositPage.enterAmount("5000.00").makeDeposit();
+        depositPage.chooseAccount().selectAccount(firstAccountIndex);
+        String secondDepositAmount = RandomData.getDepositAmount();
+        depositPage.enterAmount(secondDepositAmount).makeDeposit();
         depositPage.checkAlertMessageAndAccept(
-                BankAlert.USER_DEPOSITED_SUCCESSFULLY.getMessage() + "5000.00 to account " + accountNumber + "!");
+                BankAlert.USER_DEPOSITED_SUCCESSFULLY.getMessage() + secondDepositAmount + " to account " + accountNumber + "!");
+
+        double totalDepositAmount = Double.parseDouble(firstDepositAmount) + Double.parseDouble(secondDepositAmount);
+        String transactionAmount = String.format(Locale.US, "%.2f", totalDepositAmount);
 
         TransferMoney transferPage = new UserDashboard().makeTransaction().getPage(TransferMoney.class);
+        String recipientName = RandomData.getRecipientName();
         transferPage.chooseAccount().selectAccountByText(firstAccountNumber)
-                .enterRecipientName("Noname")
+                .enterRecipientName(recipientName)
                 .enterRecipientAccountNumber(secondAccountNumber)
-                .enterAmount("10000.00")
+                .enterAmount(transactionAmount)
                 .clickCheckbox()
                 .makeTransfer();
 
         transferPage.checkAlertMessageAndAccept(
-                BankAlert.USER_TRANSFERRED_SUCCESSFULLY.getMessage() + "10000.00 to account " + secondAccountNumber + "!");
+                BankAlert.USER_TRANSFERRED_SUCCESSFULLY.getMessage() + transactionAmount + " to account " + secondAccountNumber + "!");
 
         List<CreateAccountResponse> finalAccounts = new UserSteps(user.getUsername(), user.getPassword()).getAllAccounts();
         CreateAccountResponse firstAccount = finalAccounts.stream()
@@ -76,7 +94,7 @@ public class MakeTransactionTest extends BaseUiTest {
                 .filter(acc -> acc.getId() == secondAccountId)
                 .findFirst()
                 .orElseThrow(() -> new RuntimeException("Account not found: " + secondAccountId));
-        assertThat(finalSecondAccount.getBalance()).isEqualTo(10000.00);
+        assertThat(finalSecondAccount.getBalance()).isEqualTo(Double.parseDouble(transactionAmount));
     }
 
 
@@ -103,27 +121,41 @@ public class MakeTransactionTest extends BaseUiTest {
         String secondAccountNumber = secondAccount.getAccountNumber();
         long secondAccountId = secondAccount.getId();
 
-        // Делаем первый депозит по 5000 на первый аккаунт через UI
+        // Делаем первый депозит на первый аккаунт через UI
         DepositMoney depositPage = new UserDashboard().makeDeposit().getPage(DepositMoney.class);
-        depositPage.chooseAccount().selectAccount(1);
+        int firstAccountIndex = 1;
+        for (int i = 0; i < accounts.size(); i++) {
+            if (accounts.get(i).getAccountNumber().equals(firstAccountNumber)) {
+                firstAccountIndex = i + 1;
+                break;
+            }
+        }
+        depositPage.chooseAccount().selectAccount(firstAccountIndex);
         String accountNumber = depositPage.getAccountSelector().getSelectedOptionText().split(" ")[0];
 
-        depositPage.enterAmount("5000.00").makeDeposit();
+        String firstDepositAmount = RandomData.getDepositAmount();
+        depositPage.enterAmount(firstDepositAmount).makeDeposit();
         depositPage.checkAlertMessageAndAccept(
-                BankAlert.USER_DEPOSITED_SUCCESSFULLY.getMessage() + "5000.00 to account " + accountNumber + "!");
+                BankAlert.USER_DEPOSITED_SUCCESSFULLY.getMessage() + firstDepositAmount + " to account " + accountNumber + "!");
 
-        // Делаем второй депозит по 5000 на первый аккаунт через UI
+        // Делаем второй депозит на первый аккаунт через UI
         depositPage = new UserDashboard().makeDeposit().getPage(DepositMoney.class);
-        depositPage.chooseAccount().selectAccount(1);
-        depositPage.enterAmount("5000.00").makeDeposit();
+        depositPage.chooseAccount().selectAccount(firstAccountIndex);
+        String secondDepositAmount = RandomData.getDepositAmount();
+        depositPage.enterAmount(secondDepositAmount).makeDeposit();
         depositPage.checkAlertMessageAndAccept(
-                BankAlert.USER_DEPOSITED_SUCCESSFULLY.getMessage() + "5000.00 to account " + accountNumber + "!");
+                BankAlert.USER_DEPOSITED_SUCCESSFULLY.getMessage() + secondDepositAmount + " to account " + accountNumber + "!");
+
+        double totalDepositAmount = Double.parseDouble(firstDepositAmount) + Double.parseDouble(secondDepositAmount);
+        // Генерируем невалидную сумму транзакции больше 10000
+        String invalidTransactionAmount = RandomData.getInvalidTransactionAmount();
 
         TransferMoney transferPage = new UserDashboard().makeTransaction().getPage(TransferMoney.class);
+        String recipientName = RandomData.getRecipientName();
         transferPage.chooseAccount().selectAccountByText(firstAccountNumber)
-                .enterRecipientName("Noname")
+                .enterRecipientName(recipientName)
                 .enterRecipientAccountNumber(secondAccountNumber)
-                .enterAmount("10000.01")
+                .enterAmount(invalidTransactionAmount)
                 .clickCheckbox()
                 .makeTransfer();
 
@@ -135,7 +167,7 @@ public class MakeTransactionTest extends BaseUiTest {
                 .filter(acc -> acc.getId() == firstAccountId)
                 .findFirst()
                 .orElseThrow(() -> new RuntimeException("Account not found: " + firstAccountId));
-        assertThat(firstAccount.getBalance()).isEqualTo(10000.00);
+        assertThat(firstAccount.getBalance()).isEqualTo(totalDepositAmount);
 
         CreateAccountResponse finalSecondAccount = finalAccounts.stream()
                 .filter(acc -> acc.getId() == secondAccountId)

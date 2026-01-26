@@ -1,10 +1,11 @@
 package ui;
 
+import api.generators.RandomData;
+import api.generators.RandomModelGenerator;
 import api.models.CreateUserRequest;
 import api.models.CreateUserResponse;
 import api.requests.steps.AdminSteps;
 import com.codeborne.selenide.Condition;
-import api.generators.RandomModelGenerator;
 import models.comparison.ModelAssertions;
 import org.junit.jupiter.api.Test;
 import ui.pages.AdminPanel;
@@ -46,7 +47,7 @@ public class CreateUserTest extends BaseUiTest {
 
         // ШАГ 2: админ создает юзера в банке
         CreateUserRequest newUser = RandomModelGenerator.generate(CreateUserRequest.class);
-        newUser.setUsername("a");
+        newUser.setUsername(RandomData.getInvalidUsername());
 
         new AdminPanel().open().createUser(newUser.getUsername(), newUser.getPassword())
                 .checkAlertMessageAndAccept(BankAlert.USERNAME_MUST_BE_BETWEEN_3_AND_15_CHARACTERS.getMessage())

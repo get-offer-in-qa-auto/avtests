@@ -1,5 +1,6 @@
 package api.generators;
 
+import java.util.Locale;
 import java.util.Random;
 
 public class RandomData {
@@ -24,6 +25,57 @@ public class RandomData {
         int secondWordLength = random.nextInt(10) + 1; // от 1 до 10 символов
         return generateRandomString(LETTERS, firstWordLength) + " " +
                 generateRandomString(LETTERS, secondWordLength);
+    }
+
+    public static String getDepositAmount() {
+        double amount = 0.01 + (random.nextDouble() * 4999.99);
+        return String.format(Locale.US, "%.2f", amount);
+    }
+
+    public static String getInvalidDepositAmount() {
+        double amount = 5000.01 + (random.nextDouble() * 1000.0);
+        return String.format(Locale.US, "%.2f", amount);
+    }
+
+    public static String getInvalidUsername() {
+        int length = random.nextInt(2) + 1; // от 1 до 2 символов
+        return generateRandomString(LETTERS, length);
+    }
+
+    public static String getNameWithNumbers() {
+        int firstWordLength = random.nextInt(5) + 3; 
+        int secondWordLength = random.nextInt(5) + 3; 
+        return generateRandomString(LETTERS, firstWordLength) + " " +
+                generateRandomString(LETTERS, secondWordLength) +
+                generateRandomString(NUMBERS, random.nextInt(2) + 1); 
+    }
+
+    public static String getNameWithSymbols() {
+        String symbols = "%$&@#";
+        int firstWordLength = random.nextInt(5) + 3; 
+        int secondWordLength = random.nextInt(5) + 3; 
+        return generateRandomString(LETTERS, firstWordLength) + " " +
+                generateRandomString(LETTERS, secondWordLength) +
+                symbols.charAt(random.nextInt(symbols.length()));
+    }
+
+    public static String getNameWithoutSpace() {
+        int totalLength = random.nextInt(10) + 5; 
+        return generateRandomString(LETTERS, totalLength);
+    }
+
+    public static String getRecipientName() {
+        return getName();
+    }
+
+    public static String getTransactionAmount() {
+        double amount = 0.01 + (random.nextDouble() * 9999.98);
+        return String.format(Locale.US, "%.2f", amount);
+    }
+
+    public static String getInvalidTransactionAmount() {
+        double amount = 10000.01 + (random.nextDouble() * 1000.0);
+        return String.format(Locale.US, "%.2f", amount);
     }
 
     private static String generateRandomString(String characters, int length) {

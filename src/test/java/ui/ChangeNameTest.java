@@ -1,5 +1,6 @@
 package ui;
 
+import api.generators.RandomData;
 import api.models.CreateUserRequest;
 import api.requests.skelethon.Endpoint;
 import api.requests.skelethon.requesters.ValidatedCrudRequester;
@@ -107,7 +108,8 @@ public class ChangeNameTest extends BaseUiTest {
 
         // Меняем имя через UI
         EditPanel editProfilePage = new UserDashboard().open().changeName().getPage(EditPanel.class);
-        editProfilePage.changeName("Alex Petrov93");
+        String invalidNameWithNumbers = RandomData.getNameWithNumbers();
+        editProfilePage.changeName(invalidNameWithNumbers);
         editProfilePage.checkAlertMessageAndAccept(
                 BankAlert.USER_CANNOT_CHANGE_NAME_WITH_NUMBERS.getMessage());
 
@@ -146,7 +148,8 @@ public class ChangeNameTest extends BaseUiTest {
 
         // Меняем имя через UI
         EditPanel editProfilePage = new UserDashboard().open().changeName().getPage(EditPanel.class);
-        editProfilePage.changeName("Alex Petrov%");
+        String invalidNameWithSymbols = RandomData.getNameWithSymbols();
+        editProfilePage.changeName(invalidNameWithSymbols);
         editProfilePage.checkAlertMessageAndAccept(
                 BankAlert.USER_CANNOT_CHANGE_NAME_WITH_SYMBOLS.getMessage());
 
@@ -185,7 +188,8 @@ public class ChangeNameTest extends BaseUiTest {
 
         // Меняем имя через UI
         EditPanel editProfilePage = new UserDashboard().open().changeName().getPage(EditPanel.class);
-        editProfilePage.changeName("AlexPetrov");
+        String invalidNameWithoutSpace = RandomData.getNameWithoutSpace();
+        editProfilePage.changeName(invalidNameWithoutSpace);
         editProfilePage.checkAlertMessageAndAccept(
                 BankAlert.USER_CANNOT_CHANGE_NAME_WITHOUT_SPACE.getMessage());
 

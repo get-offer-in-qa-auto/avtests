@@ -1,5 +1,6 @@
 package ui;
 
+import api.generators.RandomData;
 import api.models.CreateAccountResponse;
 import api.models.CreateUserRequest;
 import api.requests.steps.AdminSteps;
@@ -10,10 +11,13 @@ import ui.pages.DepositMoney;
 import ui.pages.UserDashboard;
 
 import java.util.List;
+import java.util.Random;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class MakeDepositTest extends BaseUiTest {
+    private static final Random random = new Random();
+
     @Test
     public void userCanMakeDepositTest() {
         CreateUserRequest user = AdminSteps.createUser();
@@ -29,13 +33,18 @@ public class MakeDepositTest extends BaseUiTest {
                 BankAlert.NEW_ACCOUNT_CREATED.getMessage() + createdAccounts.getFirst().getAccountNumber());
         
         DepositMoney depositPage = new UserDashboard().makeDeposit().getPage(DepositMoney.class);
-        depositPage.chooseAccount().selectAccount(1);
+        
+        // Выбираем рандомный аккаунт
+        int randomAccountIndex = random.nextInt(createdAccounts.size()) + 1;
+        depositPage.chooseAccount().selectAccount(randomAccountIndex);
         String accountNumber = depositPage.getAccountSelector().getSelectedOptionText().split(" ")[0];
         
-        depositPage.enterAmount("5000.00").makeDeposit();
+        // Генерируем рандомную сумму депозита
+        String depositAmount = RandomData.getDepositAmount();
+        depositPage.enterAmount(depositAmount).makeDeposit();
         
         depositPage.checkAlertMessageAndAccept(
-                BankAlert.USER_DEPOSITED_SUCCESSFULLY.getMessage() + "5000.00 to account " + accountNumber + "!");
+                BankAlert.USER_DEPOSITED_SUCCESSFULLY.getMessage() + depositAmount + " to account " + accountNumber + "!");
 
         // Проверяем, что депозит сделан на API
         List<CreateAccountResponse> accounts = new UserSteps(user.getUsername(), user.getPassword()).getAllAccounts();
@@ -44,7 +53,7 @@ public class MakeDepositTest extends BaseUiTest {
                 .findFirst()
                 .orElseThrow(() -> new RuntimeException("Account not found: " + accountNumber));
 
-        assertThat(accountWithDeposit.getBalance()).isEqualTo(5000.00);
+        assertThat(accountWithDeposit.getBalance()).isEqualTo(Double.parseDouble(depositAmount));
     }
 
     @Test
@@ -62,10 +71,13 @@ public class MakeDepositTest extends BaseUiTest {
                 BankAlert.NEW_ACCOUNT_CREATED.getMessage() + createdAccounts.getFirst().getAccountNumber());
 
         DepositMoney depositPage = new UserDashboard().makeDeposit().getPage(DepositMoney.class);
-        depositPage.chooseAccount().selectAccount(1);
+        
+        int randomAccountIndex = random.nextInt(createdAccounts.size()) + 1;
+        depositPage.chooseAccount().selectAccount(randomAccountIndex);
         String accountNumber = depositPage.getAccountSelector().getSelectedOptionText().split(" ")[0];
 
-        depositPage.enterAmount("5000.01").makeDeposit();
+        String invalidDepositAmount = RandomData.getInvalidDepositAmount();
+        depositPage.enterAmount(invalidDepositAmount).makeDeposit();
 
         depositPage.checkAlertMessageAndAccept(
                 BankAlert.USER_DEPOSITED_UNSUCCESSFULLY.getMessage());
