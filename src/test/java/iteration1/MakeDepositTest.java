@@ -33,6 +33,8 @@ public class MakeDepositTest extends BaseTest {
 
         int accountId = (int) accountResponse.getId();
 
+        MakeDepositResponse accountBefore = AccountHelper.getAccountById(accountId, userRequest.getUsername(), userRequest.getPassword());
+
         MakeDepositRequest depositRequest = MakeDepositRequest.builder()
                 .id(accountId)
                 .balance(balance)
@@ -45,6 +47,15 @@ public class MakeDepositTest extends BaseTest {
                 .post(depositRequest);
 
         ModelAssertions.assertThatModels(depositRequest, depositResponse).match();
+
+        MakeDepositResponse accountAfter = AccountHelper.getAccountById(accountId, userRequest.getUsername(), userRequest.getPassword());
+
+        MakeDepositResponse expectedAccount = MakeDepositResponse.builder()
+                .id(accountId)
+                .balance(accountBefore.getBalance() + balance)
+                .build();
+
+        ModelAssertions.assertThatModels(expectedAccount, accountAfter).match();
     }
 
     @ParameterizedTest

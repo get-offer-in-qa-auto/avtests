@@ -1,8 +1,10 @@
 package iteration1;
 
+import models.ChangeNameResponse;
 import models.CreateUserRequest;
 import models.CreateUserResponse;
 import models.LoginUserRequest;
+import models.comparison.ModelAssertions;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
 import requests.skelethon.Endpoint;
@@ -27,6 +29,14 @@ public class LoginUserTest extends BaseTest {
                 Endpoint.LOGIN,
                 ResponseSpecs.requestReturnsOK())
                 .post(userRequest);
+
+        ChangeNameResponse profileResponse = new ValidatedCrudRequester<ChangeNameResponse>(
+                RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
+                Endpoint.PROFILE,
+                ResponseSpecs.requestReturnsOK())
+                .get(0);
+
+        org.assertj.core.api.Assertions.assertThat(profileResponse.getUsername()).isEqualTo(userRequest.getUsername());
     }
 
     @Test
@@ -38,5 +48,13 @@ public class LoginUserTest extends BaseTest {
                 ResponseSpecs.requestReturnsOK())
                 .post(LoginUserRequest.builder().username(userRequest.getUsername()).password(userRequest.getPassword()).build())
                 .header(AUTHORIZATION_HEADER, Matchers.notNullValue());
+
+        ChangeNameResponse profileResponse = new ValidatedCrudRequester<ChangeNameResponse>(
+                RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
+                Endpoint.PROFILE,
+                ResponseSpecs.requestReturnsOK())
+                .get(0);
+
+        ModelAssertions.assertThatModels(userRequest, profileResponse).match();
     }
 }

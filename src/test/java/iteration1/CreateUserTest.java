@@ -1,6 +1,7 @@
 package iteration1;
 
 import generators.RandomModelGenerator;
+import models.ChangeNameResponse;
 import models.CreateUserRequest;
 import models.CreateUserResponse;
 import models.comparison.ModelAssertions;
@@ -29,6 +30,14 @@ public class CreateUserTest extends BaseTest {
                 .post(createUserRequest);
 
         ModelAssertions.assertThatModels(createUserRequest,createUserResponse).match();
+
+        ChangeNameResponse profileResponse = new ValidatedCrudRequester<ChangeNameResponse>(
+                RequestSpecs.authAsUser(createUserRequest.getUsername(), createUserRequest.getPassword()),
+                Endpoint.PROFILE,
+                ResponseSpecs.requestReturnsOK())
+                .get(0);
+
+        ModelAssertions.assertThatModels(createUserRequest, profileResponse).match();
     }
 
     public static Stream<Arguments> userInvalidData() {
