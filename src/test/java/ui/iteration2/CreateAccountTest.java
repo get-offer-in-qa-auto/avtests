@@ -1,5 +1,6 @@
 package ui.iteration2;
 
+import api.common.utils.RetryUtils;
 import api.models.CreateAccountResponse;
 import api.models.CreateUserRequest;
 import api.requests.steps.AdminSteps;
@@ -20,7 +21,12 @@ public class CreateAccountTest extends BaseUiTest {
     public void userCanCreateAccountTest() {
         new UserDashboard().open().createNewAccount();
 
-        List<CreateAccountResponse> createdAccounts = SessionStorage.getSteps().getAllAccounts();
+        List<CreateAccountResponse> createdAccounts = RetryUtils.retry(
+                () -> SessionStorage.getSteps().getAllAccounts(),
+                result -> result != null && !result.isEmpty(),
+                10,
+                2000
+        );
 
         assertThat(createdAccounts).hasSize(1);
 

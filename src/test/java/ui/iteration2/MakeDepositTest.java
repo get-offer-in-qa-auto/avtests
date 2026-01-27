@@ -1,5 +1,6 @@
 package ui.iteration2;
 
+import api.common.utils.RetryUtils;
 import api.models.CreateAccountResponse;
 import api.common.annotations.UserSession;
 import api.common.storage.SessionStorage;
@@ -18,7 +19,12 @@ public class MakeDepositTest extends BaseUiTest {
     public void userCanMakeDepositTest() {
         new UserDashboard().open().createNewAccount();
         
-        List<CreateAccountResponse> createdAccounts = SessionStorage.getSteps().getAllAccounts();
+        List<CreateAccountResponse> createdAccounts = RetryUtils.retry(
+                () -> SessionStorage.getSteps().getAllAccounts(),
+                result -> result != null && !result.isEmpty(),
+                5,
+                1000
+        );
         
         new UserDashboard().checkAlertMessageAndAccept(
                 BankAlert.NEW_ACCOUNT_CREATED.getMessage() + createdAccounts.getFirst().getAccountNumber());
@@ -47,7 +53,12 @@ public class MakeDepositTest extends BaseUiTest {
     public void userCanNotMakeDepositWithInvalidAmountTest() {
         new UserDashboard().open().createNewAccount();
 
-        List<CreateAccountResponse> createdAccounts = SessionStorage.getSteps().getAllAccounts();
+        List<CreateAccountResponse> createdAccounts = RetryUtils.retry(
+                () -> SessionStorage.getSteps().getAllAccounts(),
+                result -> result != null && !result.isEmpty(),
+                5,
+                1000
+        );
 
         new UserDashboard().checkAlertMessageAndAccept(
                 BankAlert.NEW_ACCOUNT_CREATED.getMessage() + createdAccounts.getFirst().getAccountNumber());

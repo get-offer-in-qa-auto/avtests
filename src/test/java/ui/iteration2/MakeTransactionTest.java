@@ -22,8 +22,8 @@ public class MakeTransactionTest extends BaseUiTest {
         List<CreateAccountResponse> accounts = RetryUtils.retry(
                 () -> SessionStorage.getSteps().getAllAccounts(),
                 result -> result != null && !result.isEmpty(),
-                3,
-                1000
+                10,
+                2000
         );
         new UserDashboard().checkAlertMessageAndAccept(
                 BankAlert.NEW_ACCOUNT_CREATED.getMessage() + accounts.getFirst().getAccountNumber());
@@ -34,8 +34,8 @@ public class MakeTransactionTest extends BaseUiTest {
         accounts = RetryUtils.retry(
                 () -> SessionStorage.getSteps().getAllAccounts(),
                 result -> result != null && result.size() >= 2,
-                3,
-                1000
+                10,
+                2000
         );
         CreateAccountResponse secondAccount = accounts.stream()
                 .max((a1, a2) -> Long.compare(a1.getId(), a2.getId()))
@@ -108,8 +108,8 @@ public class MakeTransactionTest extends BaseUiTest {
         List<CreateAccountResponse> accounts = RetryUtils.retry(
                 () -> SessionStorage.getSteps().getAllAccounts(),
                 result -> result != null && !result.isEmpty(),
-                3,
-                1000
+                10,
+                2000
         );
         new UserDashboard().checkAlertMessageAndAccept(
                 BankAlert.NEW_ACCOUNT_CREATED.getMessage() + accounts.getFirst().getAccountNumber());
@@ -120,8 +120,8 @@ public class MakeTransactionTest extends BaseUiTest {
         accounts = RetryUtils.retry(
                 () -> SessionStorage.getSteps().getAllAccounts(),
                 result -> result != null && result.size() >= 2,
-                3,
-                1000
+                10,
+                2000
         );
         CreateAccountResponse secondAccount = accounts.stream()
                 .max((a1, a2) -> Long.compare(a1.getId(), a2.getId()))

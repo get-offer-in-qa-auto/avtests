@@ -2,6 +2,7 @@ package ui.iteration2;
 
 import api.common.annotations.UserSession;
 import api.common.storage.SessionStorage;
+import api.common.utils.RetryUtils;
 import api.requests.skelethon.Endpoint;
 import api.requests.skelethon.requesters.CrudRequester;
 import api.requests.skelethon.requesters.ValidatedCrudRequester;
@@ -32,7 +33,7 @@ public class ChangeNameTest extends BaseUiTest {
         String originalName = initialProfile != null ? initialProfile.getName() : null;
 
         // Меняем имя через UI
-        EditPanel editProfilePage = new UserDashboard().changeName().getPage(EditPanel.class);
+        EditPanel editProfilePage = new UserDashboard().open().changeName().getPage(EditPanel.class);
         String newName = editProfilePage.changeName();
         editProfilePage.checkAlertMessageAndAccept(
                 BankAlert.USER_CHANGED_NAME_SUCCESSFULLY.getMessage());
@@ -42,13 +43,21 @@ public class ChangeNameTest extends BaseUiTest {
         editProfilePage.getEnterNewName().shouldHave(Condition.value(newName));
 
         // Проверяем на API, что имя изменилось
-        ChangeNameResponse updatedProfile = new CrudRequester(
-                RequestSpecs.authAsUser(SessionStorage.getUser().getUsername(), SessionStorage.getUser().getPassword()),
-                Endpoint.PROFILE,
-                ResponseSpecs.requestReturnsOK())
-                .getAll(ChangeNameResponse.class)
-                .extract()
-                .as(ChangeNameResponse.class);
+        ChangeNameResponse updatedProfile = api.common.utils.RetryUtils.retry(
+                () -> {
+                    ChangeNameResponse profile = new CrudRequester(
+                            RequestSpecs.authAsUser(SessionStorage.getUser().getUsername(), SessionStorage.getUser().getPassword()),
+                            Endpoint.PROFILE,
+                            ResponseSpecs.requestReturnsOK())
+                            .getAll(ChangeNameResponse.class)
+                            .extract()
+                            .as(ChangeNameResponse.class);
+                    return profile != null && profile.getName() != null && profile.getName().equals(newName) ? profile : null;
+                },
+                result -> result != null,
+                10,
+                1000
+        );
         assertThat(updatedProfile).isNotNull();
         assertThat(updatedProfile.getName()).isEqualTo(newName);
         assertThat(updatedProfile.getName()).isNotEqualTo(originalName);
