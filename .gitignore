@@ -34,5 +34,12 @@ build/
 ### VS Code ###
 .vscode/
 
+### Env / secrets ###
+.env
+
+### Build / push logs ###
+docker-build.log
+push-output.log
+
 ### Mac OS ###
 .DS_Store

@@ -1,0 +1,14 @@
+# Исключаем лишнее из build context
+.git
+.gitignore
+.idea
+.vscode
+*.iml
+target/
+temp-check-repo/
+maven.zip
+*.log
+.env
+push-tests.sh
+Dockerfile
+.dockerignore
