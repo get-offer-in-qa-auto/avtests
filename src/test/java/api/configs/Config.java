@@ -40,7 +40,11 @@ public class Config {
         return INSTANCE.properties.getProperty(key);
     }
 
- 
+     /**
+     * Возвращает URL приложения для доступа из контейнеров браузеров (Selenoid).
+     * Если задан uiBaseUrlForBrowsers — используется он.
+     * Если uiBaseUrl содержит IP 192.168.x.x — заменяется на app-host.local.
+     */
     public static String getUiBaseUrlForBrowsers() {
         String forBrowsers = getProperty("uiBaseUrlForBrowsers");
         if (forBrowsers != null && !forBrowsers.isEmpty()) {
