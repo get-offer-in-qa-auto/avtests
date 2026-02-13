@@ -1,0 +1,21 @@
+# Build output
+target/
+
+# Version control
+.git/
+.gitignore
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temp / check
+temp-check-repo/
+
+# Documentation
+*.md

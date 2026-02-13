@@ -39,4 +39,17 @@ public class Config {
         // ПРИОРИТЕТ 3 - это config.properties
         return INSTANCE.properties.getProperty(key);
     }
+
+ 
+    public static String getUiBaseUrlForBrowsers() {
+        String forBrowsers = getProperty("uiBaseUrlForBrowsers");
+        if (forBrowsers != null && !forBrowsers.isEmpty()) {
+            return forBrowsers;
+        }
+        String baseUrl = getProperty("uiBaseUrl");
+        if (baseUrl != null && baseUrl.matches("http://192\\.168\\.\\d+\\.\\d+.*")) {
+            return baseUrl.replaceFirst("192\\.168\\.\\d+\\.\\d+", "app-host.local");
+        }
+        return baseUrl;
+    }
 }
