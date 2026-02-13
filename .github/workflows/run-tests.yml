@@ -26,10 +26,16 @@ jobs: # аналог этапов
             ${{ runner.os }}-maven-
 
       - name: Set up services
-        run: cd infra && bash restart-docker.sh && cd ..
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq jq
+          cd infra && bash restart-docker.sh && cd ..
 
       - name: Run tests
         run: ./mvnw clean test -q
         env:
           APIBASEURL: http://localhost:4111
           UIBASEURL: http://frontend
+
+      - name: Stop services
+        if: always()
+        run: cd infra && docker compose down
