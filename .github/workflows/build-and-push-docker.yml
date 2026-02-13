@@ -1,5 +1,4 @@
-# Сборка Docker-образа с автотестами и отправка в Docker Hub.
-# Требуемые секреты в настройках репозитория: DOCKERHUB_USERNAME, DOCKERHUB_TOKEN
+# Сборка Docker-образа с автотестами. Push в Docker Hub — опционально (при наличии секретов).
 name: Build and Push Docker Image
 
 on:
@@ -11,11 +10,11 @@ on:
   workflow_dispatch:
 
 env:
-  DOCKER_IMAGE_NAME: nbank-tests
+  DOCKER_IMAGE_NAME: avtests
 
 jobs:
   build-and-push:
-    name: Build, Checkstyle, Docker build & push
+    name: Build, Checkstyle, Docker build (push if secrets)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -49,21 +48,41 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Log in to Docker Hub
+      - name: Check Docker Hub secrets
+        id: docker-secrets
         env:
           DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
           DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
         run: |
-          if [ -z "$DOCKERHUB_USERNAME" ] || [ -z "$DOCKERHUB_TOKEN" ]; then
-            echo "::error::Add DOCKERHUB_USERNAME and DOCKERHUB_TOKEN in repo Settings > Secrets > Actions"
-            exit 1
+          if [ -n "$DOCKERHUB_USERNAME" ] && [ -n "$DOCKERHUB_TOKEN" ]; then
+            echo "push_enabled=true" >> $GITHUB_OUTPUT
+          else
+            echo "push_enabled=false" >> $GITHUB_OUTPUT
+            echo "::notice::DOCKERHUB_USERNAME/DOCKERHUB_TOKEN не заданы — push пропускается"
           fi
-          echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+
+      - name: Log in to Docker Hub
+        if: steps.docker-secrets.outputs.push_enabled == 'true'
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+        run: echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
 
       - name: Build Docker image
+        env:
+          PUSH_ENABLED: ${{ steps.docker-secrets.outputs.push_enabled }}
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
         run: |
-          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.DOCKER_IMAGE_NAME }}:${{ github.sha }} .
+          if [ "$PUSH_ENABLED" = "true" ]; then
+            IMG="${DOCKERHUB_USERNAME}/${{ env.DOCKER_IMAGE_NAME }}"
+            docker build -t ${IMG}:${{ github.sha }} -t ${IMG}:latest .
+          else
+            docker build -t ${{ env.DOCKER_IMAGE_NAME }}:local .
+          fi
 
       - name: Push Docker image to Docker Hub
+        if: steps.docker-secrets.outputs.push_enabled == 'true'
         run: |
-          docker push ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.DOCKER_IMAGE_NAME }}:${{ github.sha }}
+          IMG="${{ secrets.DOCKERHUB_USERNAME }}/${{ env.DOCKER_IMAGE_NAME }}"
+          docker push ${IMG}:${{ github.sha }}
+          docker push ${IMG}:latest

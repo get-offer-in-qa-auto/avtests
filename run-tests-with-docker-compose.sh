@@ -12,7 +12,7 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 COMPOSE_FILE="${SCRIPT_DIR}/infra/docker-compose.yml"
 PROJECT_DIR="${SCRIPT_DIR}/infra"
-TEST_IMAGE="zeeero/nbank-tests"
+TEST_IMAGE="zeeero/avtests"
 
 # Цвета для вывода
 RED='\033[0;31m'

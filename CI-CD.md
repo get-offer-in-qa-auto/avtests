@@ -5,23 +5,16 @@
 Workflow **Build and Push Docker Image** (`build-and-push-docker.yml`):
 
 - **Триггер:** push в любую ветку при изменениях в `src/`
-- **Этапы:** Maven build → Checkstyle → Docker build → Push в Docker Hub
-- **Тег образа:** `{DOCKERHUB_USERNAME}/nbank-tests:{commit-hash}`
+- **Этапы:** Maven build → Checkstyle → Docker build → Push (если заданы секреты)
+- **Образ:** `{DOCKERHUB_USERNAME}/avtests` (теги: `{commit-hash}`, `latest`)
 
-### Настройка
+### Настройка секретов (опционально)
 
-**Вариант 1 — через GitHub CLI:**
-```powershell
-# winget install GitHub.cli   # если не установлен
-.\scripts\setup-docker-secrets.ps1 -Username zeeero -Token "dckr_pat_YOUR_TOKEN"
-```
+Без секретов пайплайн всё равно отработает — соберёт образ локально (avtests:local). Push в Docker Hub выполняется **только** при наличии секретов.
 
-**Вариант 2 — вручную:** Settings → Secrets and variables → Actions → New repository secret:
-
-| Секрет           | Значение                         |
-|------------------|----------------------------------|
-| DOCKERHUB_USERNAME | zeeero                         |
-| DOCKERHUB_TOKEN   | Access Token из Docker Hub     |
+Для push в Docker Hub добавьте в **Settings → Secrets → Actions**:
+- `DOCKERHUB_USERNAME` — логин Docker Hub
+- `DOCKERHUB_TOKEN` — Personal Access Token (Docker Hub → Settings → Personal access tokens)
 
 ### Ручной запуск
 
