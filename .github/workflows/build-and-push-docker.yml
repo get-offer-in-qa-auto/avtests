@@ -36,7 +36,9 @@ jobs:
             ${{ runner.os }}-maven-
 
       - name: Build project with Maven
-        run: ./mvnw clean verify -DskipTests -q
+        run: |
+          chmod +x mvnw
+          ./mvnw clean verify -DskipTests -q
         env:
           APIBASEURL: http://localhost:4111
           UIBASEURL: http://frontend
