@@ -1,6 +1,6 @@
 package api.configs;
 
-// Config for API and UI test environments
+/** Configuration for API/UI test base URLs and properties. */
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
