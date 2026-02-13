@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
-/** Config for API/UI base URLs, env vars and config.properties. */
+/** Configuration for test base URLs, env vars and config.properties. */
 public class Config {
     private static final Config INSTANCE = new Config();
     private final Properties properties = new Properties();
