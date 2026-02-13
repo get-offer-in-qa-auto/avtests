@@ -10,12 +10,18 @@ Workflow **Build and Push Docker Image** (`build-and-push-docker.yml`):
 
 ### Настройка
 
-В GitHub: **Settings → Secrets and variables → Actions** задать:
+**Вариант 1 — через GitHub CLI:**
+```powershell
+# winget install GitHub.cli   # если не установлен
+.\scripts\setup-docker-secrets.ps1 -Username zeeero -Token "dckr_pat_YOUR_TOKEN"
+```
 
-| Секрет        | Описание                              |
-|---------------|----------------------------------------|
-| DOCKERHUB_USERNAME | Логин в Docker Hub                 |
-| DOCKERHUB_TOKEN    | Access Token (Settings → Security в Docker Hub) |
+**Вариант 2 — вручную:** Settings → Secrets and variables → Actions → New repository secret:
+
+| Секрет           | Значение                         |
+|------------------|----------------------------------|
+| DOCKERHUB_USERNAME | zeeero                         |
+| DOCKERHUB_TOKEN   | Access Token из Docker Hub     |
 
 ### Ручной запуск
 
