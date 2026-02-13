@@ -27,13 +27,14 @@ echo ">>> Запуск Docker Compose (detached)"
 docker compose up -d
 
 echo ">>> Ожидание готовности backend (порт 4111)..."
-for i in $(seq 1 30); do
-  if curl -s -o /dev/null -w "%{http_code}" http://localhost:4111/api/v1/ 2>/dev/null | grep -q "200\|301\|302\|404"; then
+for i in $(seq 1 60); do
+  code=$(curl -s -o /dev/null -w "%{http_code}" --connect-timeout 2 --max-time 5 http://localhost:4111/actuator/health 2>/dev/null || echo "000")
+  if [ "$code" = "200" ]; then
     echo "Backend готов."
     break
   fi
-  if [ $i -eq 30 ]; then
-    echo "Таймаут ожидания backend"
+  if [ $i -eq 60 ]; then
+    echo "Таймаут ожидания backend (последний ответ: $code)"
     exit 1
   fi
   sleep 1
