@@ -44,16 +44,12 @@ jobs: # аналог этапов
             allure-history-
 
       - name: Run tests
-        uses: coactions/setup-xvfb@v1
-        with:
-          run: mvn clean test -P ci -q
+        run: mvn clean test -P ci -q
         env:
           APIBASEURL: http://localhost:4111
           UIBASEURL: http://localhost:3000
-          # Локальный Chrome на раннере — обходим Selenoid (Docker API 1.24 vs 1.44)
+          # Локальный Chrome — Selenoid не совместим с Docker API на GitHub
           UIREMOTE: local
-          # Headed режим — headless Chrome не поддерживает native alert()
-          UIHEADLESS: "false"
 
       - name: Prepare Allure results with history
         run: |

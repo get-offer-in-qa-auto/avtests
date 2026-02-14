@@ -7,7 +7,6 @@ import io.qameta.allure.Step;
 import com.codeborne.selenide.Selectors;
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
-import org.openqa.selenium.Alert;
 import ui.elements.BaseElement;
 
 import java.util.List;
@@ -17,24 +16,39 @@ import static com.codeborne.selenide.Selenide.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public abstract class BasePage<T extends BasePage> {
+    /** Ключ для перехваченного текста window.alert() — headless Chrome не показывает native alert */
+    private static final String ALERT_CAPTURE_KEY = "__lastAlert";
+
     protected SelenideElement usernameInput = $(Selectors.byAttribute("placeholder", "Username"));
     protected SelenideElement passwordInput = $(Selectors.byAttribute("placeholder", "Password"));
 
-
     public abstract String url();
+
+    /** Перехват window.alert — в headless режиме native alert не работает */
+    protected void injectAlertCapture() {
+        executeJavaScript(
+                "window." + ALERT_CAPTURE_KEY + " = null;" +
+                "window.alert = function(msg) { window." + ALERT_CAPTURE_KEY + " = msg; };"
+        );
+    }
 
     @Step("Открыть страницу")
     public T open() {
-        return Selenide.open(url(), (Class<T>) this.getClass());
+        T page = Selenide.open(url(), (Class<T>) this.getClass());
+        injectAlertCapture();
+        return page;
     }
 
-    public <T extends BasePage> T getPage(Class<T> pageClass) { return Selenide.page(pageClass); }
+    public <T extends BasePage> T getPage(Class<T> pageClass) {
+        injectAlertCapture();
+        return Selenide.page(pageClass);
+    }
 
     @Step("Проверить и принять алерт: {bankAlert}")
     public T checkAlertMessageAndAccept(String bankAlert) {
-        Alert alert = switchTo().alert();
-        assertThat(alert.getText()).contains(bankAlert);
-        alert.accept();
+        String captured = String.valueOf(executeJavaScript("return window." + ALERT_CAPTURE_KEY + " || '';"));
+        assertThat(captured).contains(bankAlert);
+        executeJavaScript("window." + ALERT_CAPTURE_KEY + " = null;");
         return (T) this;
     }
 
