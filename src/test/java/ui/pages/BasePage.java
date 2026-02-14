@@ -57,7 +57,8 @@ public abstract class BasePage<T extends BasePage> {
             return (T) this;
         }
         // 2) Перехваченный alert (headless + window.alert) — опрос, т.к. callback может прийти асинхронно
-        String captured = pollForCapturedAlert(8);
+        // В CI API может отвечать медленнее — 15s на перехват
+        String captured = pollForCapturedAlert(15);
         if (!captured.isBlank()) {
             assertThat(captured).contains(bankAlert);
             executeJavaScript("window." + ALERT_CAPTURE_KEY + " = null;");
