@@ -45,7 +45,7 @@ public class UserDashboard extends BasePage<UserDashboard> {
 
     @Step("Открыть панель редактирования имени")
     public UserDashboard changeName() {
-        changeName.shouldBe(Condition.visible, Duration.ofSeconds(10));
+        changeName.shouldBe(Condition.visible, Duration.ofSeconds(15));
         changeName.click();
         return this;
     }

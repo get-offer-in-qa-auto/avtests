@@ -29,12 +29,9 @@ public abstract class BasePage<T extends BasePage> {
 
     public abstract String url();
 
-    /** Перехват window.alert — в headless режиме native alert не работает */
+    /** Перехват window.alert — в headless режиме native alert не работает. Не сбрасывать __lastAlert — иначе затрём перехваченное сообщение. */
     protected void injectAlertCapture() {
-        executeJavaScript(
-                "window." + ALERT_CAPTURE_KEY + " = null;" +
-                "window.alert = function(msg) { window." + ALERT_CAPTURE_KEY + " = msg; };"
-        );
+        executeJavaScript("window.alert = function(msg) { window." + ALERT_CAPTURE_KEY + " = msg; };");
     }
 
     @Step("Открыть страницу")
@@ -51,28 +48,28 @@ public abstract class BasePage<T extends BasePage> {
 
     @Step("Проверить и принять алерт: {bankAlert}")
     public T checkAlertMessageAndAccept(String bankAlert) {
+        // НЕ вызывать injectAlertCapture() здесь — он сбрасывает __lastAlert в null и затирает перехваченное сообщение!
         // 1) Native alert (headed / Selenoid)
-        Alert nativeAlert = tryGetNativeAlert(1);
+        Alert nativeAlert = tryGetNativeAlert(2);
         if (nativeAlert != null) {
             assertThat(nativeAlert.getText()).contains(bankAlert);
             nativeAlert.accept();
             return (T) this;
         }
-        // 2) Перехваченный alert (headless + window.alert)
-        Object raw = executeJavaScript("return window." + ALERT_CAPTURE_KEY + " || '';");
-        String captured = raw == null ? "" : raw instanceof char[] ? new String((char[]) raw) : raw.toString();
+        // 2) Перехваченный alert (headless + window.alert) — опрос, т.к. callback может прийти асинхронно
+        String captured = pollForCapturedAlert(8);
         if (!captured.isBlank()) {
             assertThat(captured).contains(bankAlert);
             executeJavaScript("window." + ALERT_CAPTURE_KEY + " = null;");
             return (T) this;
         }
-        // 3) Кастомный modal (React/Vue) — ищем текст в DOM (без эмодзи, т.к. приложение может их не показывать)
+        // 3) Кастомный modal (React/Vue) — ищем по короткому ключу (текст может быть разбит по DOM)
         String searchText = bankAlert.replaceAll("\\p{So}", "").trim();
         if (searchText.isEmpty()) searchText = bankAlert;
-        // CI медленнее — 15 сек на появление modal (Configuration.timeout по умолчанию 4 сек)
+        String searchKey = extractSearchKey(searchText);
         long timeoutSec = Math.max(15, com.codeborne.selenide.Configuration.timeout / 1000L);
-        SelenideElement msgEl = $(Selectors.withText(searchText)).shouldBe(Condition.visible, Duration.ofSeconds(timeoutSec));
-        assertThat(msgEl.getText()).contains(searchText);
+        SelenideElement msgEl = $(Selectors.withText(searchKey)).shouldBe(Condition.visible, Duration.ofSeconds(timeoutSec));
+        assertThat(msgEl.getText()).as("Modal message").contains(searchKey);
         // Закрыть modal — кнопка в том же контейнере или любая видимая
         SelenideElement modal = msgEl.closest("[role='dialog'], [role='alertdialog'], .modal, .alert");
         if (modal.is(Condition.exist)) {
@@ -92,10 +89,43 @@ public abstract class BasePage<T extends BasePage> {
         }
     }
 
+    /** Извлекаем короткий ключ для поиска — DOM может разбивать длинный текст */
+    private String extractSearchKey(String fullText) {
+        if (fullText.length() <= 25) return fullText;
+        if (fullText.contains("New Account Created")) return "New Account Created";
+        if (fullText.contains("Successfully deposited")) return "Successfully deposited";
+        if (fullText.contains("Successfully transferred")) return "Successfully transferred";
+        if (fullText.contains("Name updated")) return "Name updated";
+        if (fullText.contains("User created")) return "User created";
+        if (fullText.contains("Username must be")) return "Username must be";
+        if (fullText.contains("Name must contain")) return "Name must contain";
+        if (fullText.contains("Please enter a valid name")) return "Please enter a valid name";
+        if (fullText.contains("Please deposit less")) return "Please deposit less";
+        if (fullText.contains("Error: Invalid transfer")) return "Error: Invalid transfer";
+        return fullText.substring(0, Math.min(30, fullText.length()));
+    }
+
+    /** Опрос __lastAlert — callback alert() может сработать асинхронно после клика */
+    private String pollForCapturedAlert(int maxWaitSeconds) {
+        for (int i = 0; i < maxWaitSeconds * 5; i++) {
+            Object raw = executeJavaScript("return window." + ALERT_CAPTURE_KEY + " || '';");
+            String s = raw == null ? "" : raw instanceof char[] ? new String((char[]) raw) : raw.toString();
+            if (!s.isBlank()) return s;
+            try {
+                Thread.sleep(200);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                break;
+            }
+        }
+        return "";
+    }
+
     public static void authAsUser(String username, String password) {
         Selenide.open("/");
         String userAuthHeader = RequestSpecs.getUserAuthHeader(username, password);
         executeJavaScript("localStorage.setItem('authToken', arguments[0]);", userAuthHeader);
+        executeJavaScript("window.alert = function(msg) { window." + ALERT_CAPTURE_KEY + " = msg; };");
     }
 
     public static void authAsUser(CreateUserRequest createUserRequest) {

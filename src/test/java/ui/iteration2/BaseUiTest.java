@@ -11,6 +11,7 @@ import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.logevents.SelenideLogger;
 import io.qameta.allure.selenide.AllureSelenide;
+import ui.extensions.AlertCaptureCdpExtension;
 import ui.listeners.ScreenshotOnStepListener;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,10 +20,12 @@ import java.util.Map;
 
 import static com.codeborne.selenide.Selenide.executeJavaScript;
 
+@ExtendWith(AlertCaptureCdpExtension.class)
 @ExtendWith(AdminSessionExtension.class)
 @ExtendWith(UserSessionExtension.class)
 @ExtendWith(BrowserMatchExtension.class)
 public class BaseUiTest extends BaseTest {
+
     @BeforeAll
     public static void setupSelenoid() {
         String uiRemote = Config.getProperty("uiRemote");
