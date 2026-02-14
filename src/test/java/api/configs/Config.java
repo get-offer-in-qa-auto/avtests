@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
-/** Configuration for base URLs, env vars and config.properties. */
 public class Config {
     private static final Config INSTANCE = new Config();
     private final Properties properties = new Properties();
@@ -39,22 +38,5 @@ public class Config {
 
         // ПРИОРИТЕТ 3 - это config.properties
         return INSTANCE.properties.getProperty(key);
-    }
-
-     /**
-     * Возвращает URL приложения для доступа из контейнеров браузеров (Selenoid).
-     * Если задан uiBaseUrlForBrowsers — используется он.
-     * Если uiBaseUrl содержит IP 192.168.x.x — заменяется на app-host.local.
-     */
-    public static String getUiBaseUrlForBrowsers() {
-        String forBrowsers = getProperty("uiBaseUrlForBrowsers");
-        if (forBrowsers != null && !forBrowsers.isEmpty()) {
-            return forBrowsers;
-        }
-        String baseUrl = getProperty("uiBaseUrl");
-        if (baseUrl != null && baseUrl.matches("http://192\\.168\\.\\d+\\.\\d+.*")) {
-            return baseUrl.replaceFirst("192\\.168\\.\\d+\\.\\d+", "app-host.local");
-        }
-        return baseUrl;
     }
 }

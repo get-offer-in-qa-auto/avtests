@@ -3,6 +3,7 @@ package ui.pages;
 import api.models.CreateUserRequest;
 import api.specs.RequestSpecs;
 import com.codeborne.selenide.ElementsCollection;
+import io.qameta.allure.Step;
 import com.codeborne.selenide.Selectors;
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
@@ -22,12 +23,14 @@ public abstract class BasePage<T extends BasePage> {
 
     public abstract String url();
 
+    @Step("Открыть страницу")
     public T open() {
         return Selenide.open(url(), (Class<T>) this.getClass());
     }
 
     public <T extends BasePage> T getPage(Class<T> pageClass) { return Selenide.page(pageClass); }
 
+    @Step("Проверить и принять алерт: {bankAlert}")
     public T checkAlertMessageAndAccept(String bankAlert) {
         Alert alert = switchTo().alert();
         assertThat(alert.getText()).contains(bankAlert);

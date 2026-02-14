@@ -1,7 +1,11 @@
 package ui.pages;
 
+import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Selectors;
 import com.codeborne.selenide.SelenideElement;
+import io.qameta.allure.Step;
+
+import java.time.Duration;
 import lombok.Getter;
 
 import static com.codeborne.selenide.Selenide.$;
@@ -21,22 +25,27 @@ public class UserDashboard extends BasePage<UserDashboard> {
         return "/dashboard";
     }
 
+    @Step("Создать новый аккаунт")
     public UserDashboard createNewAccount() {
         createNewAccount.click();
         return this;
     }
 
+    @Step("Перейти к депозиту")
     public UserDashboard makeDeposit() {
         makeDeposit.click();
         return this;
     }
 
+    @Step("Перейти к переводу")
     public UserDashboard makeTransaction() {
         makeTransaction.click();
         return this;
     }
 
+    @Step("Открыть панель редактирования имени")
     public UserDashboard changeName() {
+        changeName.shouldBe(Condition.visible, Duration.ofSeconds(10));
         changeName.click();
         return this;
     }

@@ -6,11 +6,11 @@ import api.requests.steps.AdminSteps;
 import api.specs.RequestSpecs;
 import api.specs.ResponseSpecs;
 import api.helpers.AccountHelper;
-import models.MakeDepositRequest;
-import models.MakeDepositResponse;
-import models.MakeTransactionRequest;
-import models.MakeTransactionResponse;
-import models.comparison.ModelAssertions;
+import api.models.MakeDepositRequest;
+import api.models.MakeDepositResponse;
+import api.models.MakeTransactionRequest;
+import api.models.MakeTransactionResponse;
+import api.models.comparison.ModelAssertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -23,7 +23,7 @@ import java.util.stream.Stream;
 
 public class MakeTransactionTest extends BaseTest {
 
-    @ParameterizedTest
+    @ParameterizedTest(name = "[{index}] amount={0}")
     @MethodSource("validTransactionAmountSmall")
     public void userCanMakeTransactionWithSmallAmountTest(double amount) {
         CreateUserRequest userRequest = AdminSteps.createUser();
@@ -87,7 +87,7 @@ public class MakeTransactionTest extends BaseTest {
         ModelAssertions.assertThatModels(expectedReceiverAccount, receiverAccountAfter).match();
     }
 
-    @ParameterizedTest
+    @ParameterizedTest(name = "[{index}] amount={0}")
     @MethodSource("validTransactionAmountLarge")
     public void userCanMakeTransactionWithLargeAmountTest(double amount) {
         CreateUserRequest userRequest = AdminSteps.createUser();
@@ -166,7 +166,7 @@ public class MakeTransactionTest extends BaseTest {
                 Arguments.of(9999.99));
     }
 
-    @ParameterizedTest
+    @ParameterizedTest(name = "[{index}] amount={0}, errorType={1}")
     @MethodSource("invalidAmountTransfer")
     public void userCannotTransferInvalidAmountTest(double amount, String errorType) {
         CreateUserRequest userRequest = AdminSteps.createUser();

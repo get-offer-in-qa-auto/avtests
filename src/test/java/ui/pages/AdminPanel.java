@@ -1,6 +1,7 @@
 package ui.pages;
 
 import com.codeborne.selenide.ElementsCollection;
+import io.qameta.allure.Step;
 import com.codeborne.selenide.Selectors;
 import com.codeborne.selenide.SelenideElement;
 import api.common.utils.RetryUtils;
@@ -21,6 +22,7 @@ public class AdminPanel extends BasePage<AdminPanel> {
         return "/admin";
     }
 
+    @Step("Создать пользователя {username}")
     public AdminPanel createUser(String username, String password) {
         usernameInput.sendKeys(username);
         passwordInput.sendKeys(password);
@@ -28,6 +30,7 @@ public class AdminPanel extends BasePage<AdminPanel> {
         return this;
     }
 
+    @Step("Получить список всех пользователей")
     public List<UserBage> getAllUsers() {
         ElementsCollection elementsCollection =  $(Selectors.byText("All Users")).parent().findAll("li");
         return generatePageElements(elementsCollection, UserBage::new);
@@ -35,10 +38,11 @@ public class AdminPanel extends BasePage<AdminPanel> {
 
     public UserBage findUserByUsername(String username) {
         return RetryUtils.retry(
+                "Поиск пользователя " + username,
                 () -> getAllUsers().stream().filter(it -> it.getUsername().equals(username)).findAny().orElse(null),
                 result -> result != null,
                 3,
-                1000
+                1000L
         );
     }
 }

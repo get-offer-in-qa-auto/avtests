@@ -3,7 +3,7 @@ package api.iteration2;
 import api.generators.RandomModelGenerator;
 import api.models.CreateUserRequest;
 import api.models.CreateUserResponse;
-import models.comparison.ModelAssertions;
+import api.models.comparison.ModelAssertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -44,7 +44,7 @@ public class CreateUserTest extends BaseTest {
     }
 
     @MethodSource("userInvalidData")
-    @ParameterizedTest
+    @ParameterizedTest(name = "[{index}] {3}={0}")
     public void adminCanNotCreateUserWithInvalidData(String username, String password, String role, String errorKey, List<String> errorValues) {
         CreateUserRequest createUserRequest = CreateUserRequest.builder()
                 .username(username)

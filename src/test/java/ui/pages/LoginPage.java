@@ -1,6 +1,7 @@
 package ui.pages;
 
 import com.codeborne.selenide.SelenideElement;
+import io.qameta.allure.Step;
 
 import static com.codeborne.selenide.Selenide.$;
 
@@ -12,6 +13,7 @@ public class LoginPage extends BasePage<LoginPage> {
         return "/login";
     }
 
+    @Step("Войти как {username}")
     public LoginPage login(String username, String password) {
         usernameInput.sendKeys(username);
         passwordInput.sendKeys(password);

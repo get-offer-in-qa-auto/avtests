@@ -6,9 +6,9 @@ import api.requests.steps.AdminSteps;
 import api.specs.RequestSpecs;
 import api.specs.ResponseSpecs;
 import api.helpers.AccountHelper;
-import models.MakeDepositRequest;
-import models.MakeDepositResponse;
-import models.comparison.ModelAssertions;
+import api.models.MakeDepositRequest;
+import api.models.MakeDepositResponse;
+import api.models.comparison.ModelAssertions;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -20,7 +20,7 @@ import java.util.stream.Stream;
 
 public class MakeDepositTest extends BaseTest {
 
-    @ParameterizedTest
+    @ParameterizedTest(name = "[{index}] balance={0}")
     @MethodSource("validBalanceData")
     public void userCanMakeDepositTest(double balance) {
         CreateUserRequest userRequest = AdminSteps.createUser();
@@ -47,7 +47,7 @@ public class MakeDepositTest extends BaseTest {
         ModelAssertions.assertThatModels(depositRequest, depositResponse).match();
     }
 
-    @ParameterizedTest
+    @ParameterizedTest(name = "[{index}] balance={0}, error={1}")
     @MethodSource("invalidBalanceData")
     public void userCannotDepositInvalidBalanceTest(double balance, String errorValue) {
         CreateUserRequest userRequest = AdminSteps.createUser();
@@ -77,7 +77,7 @@ public class MakeDepositTest extends BaseTest {
         ModelAssertions.assertThatModels(accountBefore, accountAfter).match();
     }
 
-    @ParameterizedTest
+    @ParameterizedTest(name = "[{index}] account={0}, balance={1}")
     @MethodSource("invalidDepositAccount")
     public void userCannotDepositToInvalidAccountTest(int account, int balance) {
         CreateUserRequest userRequest = AdminSteps.createUser();
@@ -109,8 +109,8 @@ public class MakeDepositTest extends BaseTest {
 
     public static Stream<Arguments> invalidDepositAccount() {
         return Stream.of(
-                Arguments.of(2, 1000),
-                Arguments.of(4, 1000));
+                Arguments.of(999998, 1000),
+                Arguments.of(999999, 1000));
     }
 
     public static Stream<Arguments> validBalanceData() {

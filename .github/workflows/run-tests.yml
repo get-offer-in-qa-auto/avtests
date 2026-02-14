@@ -35,11 +35,45 @@ jobs: # аналог этапов
           sudo apt-get update -qq && sudo apt-get install -y -qq jq
           cd infra && bash restart-docker.sh && cd ..
 
+      - name: Restore Allure history
+        uses: actions/cache@v4
+        with:
+          path: allure-history
+          key: allure-history-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            allure-history-
+
       - name: Run tests
-        run: mvn clean test -P api -q
+        run: mvn clean test -P ci -q
         env:
           APIBASEURL: http://localhost:4111
           UIBASEURL: http://localhost:3000
+          # URL для контейнеров браузеров Selenoid (frontend доступен по имени сервиса в сети)
+          UIBASEURLFORBROWSERS: http://frontend
+
+      - name: Prepare Allure results with history
+        run: |
+          if [ -d allure-history ]; then
+            mkdir -p target/allure-results/history
+            cp -r allure-history/. target/allure-results/history/
+          fi
+
+      - name: Generate Allure report
+        run: mvn allure:report -q
+
+      - name: Save Allure history for next run
+        if: success()
+        run: |
+          if [ -d target/site/allure-maven-plugin/history ]; then
+            mkdir -p allure-history
+            cp -r target/site/allure-maven-plugin/history/. allure-history/
+          fi
+
+      - name: Upload Allure report
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-report
+          path: target/site/allure-maven-plugin
 
       - name: Stop services
         if: always()

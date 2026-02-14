@@ -3,7 +3,7 @@ package ui.iteration2;
 import api.generators.RandomModelGenerator;
 import api.models.CreateUserRequest;
 import api.models.CreateUserResponse;
-import models.comparison.ModelAssertions;
+import api.models.comparison.ModelAssertions;
 import api.requests.steps.AdminSteps;
 import api.common.annotations.AdminSession;
 import org.junit.jupiter.api.Test;

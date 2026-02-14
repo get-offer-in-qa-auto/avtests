@@ -1,4 +1,7 @@
 target/
+.allure/
+allure-history/
+allure-reports/
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/

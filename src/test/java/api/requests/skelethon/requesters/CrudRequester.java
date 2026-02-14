@@ -1,7 +1,6 @@
 package api.requests.skelethon.requesters;
 
-import api.models.CreateUserResponse;
-import api.specs.RequestSpecs;
+import io.qameta.allure.Step;
 import io.restassured.response.ValidatableResponse;
 import io.restassured.specification.RequestSpecification;
 import io.restassured.specification.ResponseSpecification;
@@ -9,9 +8,8 @@ import api.models.BaseModel;
 import api.requests.skelethon.Endpoint;
 import api.requests.skelethon.HttpRequest;
 import api.requests.skelethon.interfaces.CrudEndpointInterface;
-import org.apache.http.HttpStatus;
 
-import static io.restassured.RestAssured.*;
+import static io.restassured.RestAssured.given;
 
 public class CrudRequester extends HttpRequest implements CrudEndpointInterface {
     public CrudRequester(RequestSpecification requestSpecification, Endpoint endpoint, ResponseSpecification responseSpecification) {
@@ -19,6 +17,7 @@ public class CrudRequester extends HttpRequest implements CrudEndpointInterface 
     }
 
     @Override
+    @Step("POST запрос с телом {model}")
     public ValidatableResponse post(BaseModel model) {
         var body = model == null ? "" : model;
         return  given()
@@ -31,11 +30,13 @@ public class CrudRequester extends HttpRequest implements CrudEndpointInterface 
     }
 
     @Override
+    @Step("GET запрос с id {id}")
     public Object get(long id) {
         return null;
     }
 
     @Override
+    @Step("PUT запрос с id {id} и телом {model}")
     public ValidatableResponse update(long id, BaseModel model) {
         var body = model == null ? "" : model;
         String url = endpoint.getUrl();
@@ -53,10 +54,12 @@ public class CrudRequester extends HttpRequest implements CrudEndpointInterface 
     }
 
     @Override
+    @Step("DELETE запрос с id {id}")
     public Object delete(long id) {
         return null;
     }
 
+    @Step("GET запрос для получения всех записей {clazz}")
     public ValidatableResponse getAll(Class<?> clazz) {
         return given()
                 .spec(requestSpecification)

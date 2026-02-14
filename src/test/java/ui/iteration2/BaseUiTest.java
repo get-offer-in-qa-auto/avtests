@@ -1,19 +1,20 @@
 package ui.iteration2;
 
-import api.models.CreateUserRequest;
-import api.specs.RequestSpecs;
 import api.common.extensions.AdminSessionExtension;
 import api.common.extensions.BrowserMatchExtension;
 import api.common.extensions.UserSessionExtension;
+import api.configs.Config;
 import api.iteration2.BaseTest;
+import api.models.CreateUserRequest;
+import api.specs.RequestSpecs;
 import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.Selenide;
+import com.codeborne.selenide.logevents.SelenideLogger;
+import io.qameta.allure.selenide.AllureSelenide;
+import ui.listeners.ScreenshotOnStepListener;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.api.parallel.Execution;
-import org.junit.jupiter.api.parallel.ExecutionMode;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import static com.codeborne.selenide.Selenide.executeJavaScript;
@@ -21,28 +22,32 @@ import static com.codeborne.selenide.Selenide.executeJavaScript;
 @ExtendWith(AdminSessionExtension.class)
 @ExtendWith(UserSessionExtension.class)
 @ExtendWith(BrowserMatchExtension.class)
-@Execution(ExecutionMode.CONCURRENT) 
 public class BaseUiTest extends BaseTest {
     @BeforeAll
     public static void setupSelenoid() {
-        Configuration.remote = api.configs.Config.getProperty("uiRemote");
-        // Use Config helper method to get URL suitable for browser containers
-        Configuration.baseUrl = api.configs.Config.getUiBaseUrlForBrowsers();
-        Configuration.browser = api.configs.Config.getProperty("browser");
-        Configuration.browserSize = api.configs.Config.getProperty("browserSize");
-        Configuration.timeout = 15000; // 15 seconds timeout for element operations
-        Configuration.pageLoadTimeout = 60000; // 60 seconds page load timeout
-        
+        String uiRemote = Config.getProperty("uiRemote");
+        boolean useLocalBrowser = uiRemote == null || uiRemote.isBlank() || "local".equalsIgnoreCase(uiRemote.trim());
 
-        // Configure Selenoid options
-        Map<String, Object> selenoidOptions = new HashMap<>();
-        selenoidOptions.put("enableVNC", true);
-        selenoidOptions.put("enableLog", true);
-        
-        Configuration.browserCapabilities.setCapability("selenoid:options", selenoidOptions);
-        
-        Configuration.remoteConnectionTimeout = 60000; 
-        Configuration.remoteReadTimeout = 120000;
+        Configuration.browser = Config.getProperty("browser");
+        Configuration.browserSize = Config.getProperty("browserSize");
+
+        SelenideLogger.addListener("AllureSelenide", new AllureSelenide()
+                .screenshots(true)
+                .savePageSource(true)
+                .includeSelenideSteps(false));
+        SelenideLogger.addListener("ScreenshotOnStep", new ScreenshotOnStepListener());
+
+        if (useLocalBrowser) {
+            Configuration.remote = null;
+            Configuration.baseUrl = Config.getProperty("uiBaseUrl");
+            Configuration.headless = true;
+        } else {
+            Configuration.remote = uiRemote;
+            String forBrowsers = Config.getProperty("uiBaseUrlForBrowsers");
+            Configuration.baseUrl = (forBrowsers != null && !forBrowsers.isBlank()) ? forBrowsers : Config.getProperty("uiBaseUrl");
+            Configuration.browserCapabilities.setCapability("selenoid:options",
+                    Map.of("enableVNC", true, "enableLog", true));
+        }
     }
 
     public void authAsUser(String username, String password) {

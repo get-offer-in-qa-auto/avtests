@@ -16,7 +16,7 @@ services:
       - nbank-network
 
   selenoid:
-    image: aerokube/selenoid:latest
+    image: aerokube/selenoid:1.11.3
     ports:
       - "4444:4444"
     volumes:

@@ -5,8 +5,8 @@ import api.requests.skelethon.requesters.CrudRequester;
 import api.requests.skelethon.requesters.ValidatedCrudRequester;
 import api.specs.RequestSpecs;
 import api.specs.ResponseSpecs;
-import models.ChangeNameResponse;
-import models.MakeDepositResponse;
+import api.models.ChangeNameResponse;
+import api.models.MakeDepositResponse;
 import api.requests.skelethon.Endpoint;
 
 import java.util.List;

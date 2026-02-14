@@ -20,10 +20,11 @@ public class MakeTransactionTest extends BaseUiTest {
     public void userCanMakeTransactionTest() {
         new UserDashboard().open().createNewAccount();
         List<CreateAccountResponse> accounts = RetryUtils.retry(
+                "Получение списка аккаунтов",
                 () -> SessionStorage.getSteps().getAllAccounts(),
                 result -> result != null && !result.isEmpty(),
                 10,
-                2000
+                2000L
         );
         new UserDashboard().checkAlertMessageAndAccept(
                 BankAlert.NEW_ACCOUNT_CREATED.getMessage() + accounts.getFirst().getAccountNumber());
@@ -32,10 +33,11 @@ public class MakeTransactionTest extends BaseUiTest {
 
         new UserDashboard().createNewAccount();
         accounts = RetryUtils.retry(
+                "Получение двух аккаунтов",
                 () -> SessionStorage.getSteps().getAllAccounts(),
                 result -> result != null && result.size() >= 2,
                 10,
-                2000
+                2000L
         );
         CreateAccountResponse secondAccount = accounts.stream()
                 .max((a1, a2) -> Long.compare(a1.getId(), a2.getId()))
@@ -62,6 +64,7 @@ public class MakeTransactionTest extends BaseUiTest {
 
         // Ждем обновления баланса после депозитов перед переводом
         RetryUtils.retry(
+                "Ожидание обновления баланса после депозитов",
                 () -> {
                     List<CreateAccountResponse> accountsAfterDeposits = SessionStorage.getSteps().getAllAccounts();
                     CreateAccountResponse account = accountsAfterDeposits.stream()
@@ -72,7 +75,7 @@ public class MakeTransactionTest extends BaseUiTest {
                 },
                 result -> result,
                 5,
-                1000
+                1000L
         );
 
         TransferMoney transferPage = new UserDashboard().makeTransaction().getPage(TransferMoney.class);
@@ -106,10 +109,11 @@ public class MakeTransactionTest extends BaseUiTest {
     public void userCanNotMakeTransactionWithInvalidAmountTest() {
         new UserDashboard().open().createNewAccount();
         List<CreateAccountResponse> accounts = RetryUtils.retry(
+                "Получение списка аккаунтов",
                 () -> SessionStorage.getSteps().getAllAccounts(),
                 result -> result != null && !result.isEmpty(),
                 10,
-                2000
+                2000L
         );
         new UserDashboard().checkAlertMessageAndAccept(
                 BankAlert.NEW_ACCOUNT_CREATED.getMessage() + accounts.getFirst().getAccountNumber());
@@ -118,10 +122,11 @@ public class MakeTransactionTest extends BaseUiTest {
 
         new UserDashboard().createNewAccount();
         accounts = RetryUtils.retry(
+                "Получение двух аккаунтов",
                 () -> SessionStorage.getSteps().getAllAccounts(),
                 result -> result != null && result.size() >= 2,
                 10,
-                2000
+                2000L
         );
         CreateAccountResponse secondAccount = accounts.stream()
                 .max((a1, a2) -> Long.compare(a1.getId(), a2.getId()))

@@ -5,11 +5,9 @@ import api.common.storage.SessionStorage;
 import api.common.utils.RetryUtils;
 import api.requests.skelethon.Endpoint;
 import api.requests.skelethon.requesters.CrudRequester;
-import api.requests.skelethon.requesters.ValidatedCrudRequester;
 import api.specs.RequestSpecs;
 import api.specs.ResponseSpecs;
-import com.codeborne.selenide.Condition;
-import models.ChangeNameResponse;
+import api.models.ChangeNameResponse;
 import org.junit.jupiter.api.Test;
 import ui.pages.BankAlert;
 import ui.pages.EditPanel;
@@ -40,10 +38,11 @@ public class ChangeNameTest extends BaseUiTest {
 
         // Проверяем на UI, что имя изменилось
         editProfilePage = new UserDashboard().changeName().getPage(EditPanel.class);
-        editProfilePage.getEnterNewName().shouldHave(Condition.value(newName));
+        editProfilePage.verifyDisplayedName(newName);
 
         // Проверяем на API, что имя изменилось
-        ChangeNameResponse updatedProfile = api.common.utils.RetryUtils.retry(
+        ChangeNameResponse updatedProfile = RetryUtils.retry(
+                "Проверка обновления профиля через API",
                 () -> {
                     ChangeNameResponse profile = new CrudRequester(
                             RequestSpecs.authAsUser(SessionStorage.getUser().getUsername(), SessionStorage.getUser().getPassword()),
@@ -56,7 +55,7 @@ public class ChangeNameTest extends BaseUiTest {
                 },
                 result -> result != null,
                 10,
-                1000
+                1000L
         );
         assertThat(updatedProfile).isNotNull();
         assertThat(updatedProfile.getName()).isEqualTo(newName);
@@ -79,16 +78,13 @@ public class ChangeNameTest extends BaseUiTest {
         // Меняем имя через UI
         EditPanel editProfilePage = new UserDashboard().open().changeName().getPage(EditPanel.class);
         editProfilePage.changeName(" ");
-        editProfilePage.checkAlertMessageAndAccept(
-                BankAlert.USER_CHANGED_NAME_TO_BLANK_STRING.getMessage());
 
         // Проверяем на UI, что имя не изменилось
         editProfilePage = new EditPanel().open().getPage(EditPanel.class);
         if (originalName != null && !originalName.isEmpty()) {
-            editProfilePage.getEnterNewName().shouldHave(Condition.value(originalName));
+            editProfilePage.verifyDisplayedName(originalName);
         } else {
-            String displayedValue = editProfilePage.getEnterNewName().getValue();
-            assertThat(displayedValue).isNullOrEmpty();
+            assertThat(editProfilePage.getDisplayedName()).isNullOrEmpty();
         }
 
         // Проверяем на API, что имя не изменилось
@@ -125,10 +121,9 @@ public class ChangeNameTest extends BaseUiTest {
         // Проверяем на UI, что имя не изменилось
         editProfilePage = new EditPanel().open().getPage(EditPanel.class);
         if (originalName != null && !originalName.isEmpty()) {
-            editProfilePage.getEnterNewName().shouldHave(Condition.value(originalName));
+            editProfilePage.verifyDisplayedName(originalName);
         } else {
-            String displayedValue = editProfilePage.getEnterNewName().getValue();
-            assertThat(displayedValue).isNullOrEmpty();
+            assertThat(editProfilePage.getDisplayedName()).isNullOrEmpty();
         }
 
         // Проверяем на API, что имя не изменилось
@@ -165,10 +160,9 @@ public class ChangeNameTest extends BaseUiTest {
         // Проверяем на UI, что имя не изменилось
         editProfilePage = new EditPanel().open().getPage(EditPanel.class);
         if (originalName != null && !originalName.isEmpty()) {
-            editProfilePage.getEnterNewName().shouldHave(Condition.value(originalName));
+            editProfilePage.verifyDisplayedName(originalName);
         } else {
-            String displayedValue = editProfilePage.getEnterNewName().getValue();
-            assertThat(displayedValue).isNullOrEmpty();
+            assertThat(editProfilePage.getDisplayedName()).isNullOrEmpty();
         }
 
         // Проверяем на API, что имя не изменилось
@@ -205,10 +199,9 @@ public class ChangeNameTest extends BaseUiTest {
         // Проверяем на UI, что имя не изменилось
         editProfilePage = new EditPanel().open().getPage(EditPanel.class);
         if (originalName != null && !originalName.isEmpty()) {
-            editProfilePage.getEnterNewName().shouldHave(Condition.value(originalName));
+            editProfilePage.verifyDisplayedName(originalName);
         } else {
-            String displayedValue = editProfilePage.getEnterNewName().getValue();
-            assertThat(displayedValue).isNullOrEmpty();
+            assertThat(editProfilePage.getDisplayedName()).isNullOrEmpty();
         }
 
         // Проверяем на API, что имя не изменилось

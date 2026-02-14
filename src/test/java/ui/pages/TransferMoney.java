@@ -2,6 +2,7 @@ package ui.pages;
 
 import api.common.utils.RetryUtils;
 import com.codeborne.selenide.Selectors;
+import io.qameta.allure.Step;
 import com.codeborne.selenide.SelenideElement;
 import lombok.Getter;
 
@@ -22,18 +23,22 @@ public class TransferMoney extends BasePage<TransferMoney> {
         return "/dashboard";
     }
 
+    @Step("Выбрать аккаунт отправителя")
     public TransferMoney chooseAccount() {
         accountSelector.click();
         return this;
     }
 
+    @Step("Выбрать аккаунт по индексу {index}")
     public TransferMoney selectAccount(int index) {
         accountSelector.selectOption(index);
         return this;
     }
 
+    @Step("Выбрать аккаунт {accountNumber}")
     public TransferMoney selectAccountByText(String accountNumber) {
         RetryUtils.retry(
+                "Выбор аккаунта " + accountNumber,
                 () -> {
                     try {
                         accountSelector.selectOptionContainingText(accountNumber);
@@ -44,31 +49,36 @@ public class TransferMoney extends BasePage<TransferMoney> {
                 },
                 result -> result,
                 3,
-                1000
+                1000L
         );
         return this;
     }
 
+    @Step("Ввести имя получателя {name}")
     public TransferMoney enterRecipientName(String name) {
         enterRecipientName.sendKeys(name);
         return this;
     }
 
+    @Step("Ввести номер аккаунта получателя {accountNumber}")
     public TransferMoney enterRecipientAccountNumber(String accountNumber) {
         enterRecipientAccountNumber.sendKeys(accountNumber);
         return this;
     }
 
+    @Step("Ввести сумму перевода {amount}")
     public TransferMoney enterAmount(String amount) {
         enterAmount.sendKeys(amount);
         return this;
     }
 
+    @Step("Подтвердить перевод")
     public TransferMoney clickCheckbox() {
         checkboxClick.click();
         return this;
     }
 
+    @Step("Выполнить перевод")
     public TransferMoney makeTransfer() {
         sendTransferButton.click();
         return this;
