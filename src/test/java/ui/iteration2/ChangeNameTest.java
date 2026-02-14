@@ -36,8 +36,8 @@ public class ChangeNameTest extends BaseUiTest {
         editProfilePage.checkAlertMessageAndAccept(
                 BankAlert.USER_CHANGED_NAME_SUCCESSFULLY.getMessage());
 
-        // Проверяем на UI, что имя изменилось
-        editProfilePage = new UserDashboard().changeName().getPage(EditPanel.class);
+        // Проверяем на UI, что имя изменилось (open() гарантирует dashboard после alert)
+        editProfilePage = new UserDashboard().open().changeName().getPage(EditPanel.class);
         editProfilePage.verifyDisplayedName(newName);
 
         // Проверяем на API, что имя изменилось

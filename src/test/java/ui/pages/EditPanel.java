@@ -7,6 +7,8 @@ import com.codeborne.selenide.SelenideElement;
 import io.qameta.allure.Step;
 import lombok.Getter;
 
+import java.time.Duration;
+
 import static com.codeborne.selenide.Selenide.$;
 
 @Getter
@@ -40,7 +42,8 @@ public class EditPanel extends BasePage<EditPanel> {
 
     @Step("Проверить отображаемое имя: {expected}")
     public EditPanel verifyDisplayedName(String expected) {
-        enterNewName.shouldHave(Condition.value(expected));
+        // В CI загрузка профиля может занимать >15s — используем 30s
+        enterNewName.shouldHave(Condition.value(expected), Duration.ofSeconds(30));
         return this;
     }
 }
