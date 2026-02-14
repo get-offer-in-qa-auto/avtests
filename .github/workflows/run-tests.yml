@@ -48,8 +48,8 @@ jobs: # аналог этапов
         env:
           APIBASEURL: http://localhost:4111
           UIBASEURL: http://localhost:3000
-          # URL для контейнеров браузеров Selenoid (frontend доступен по имени сервиса в сети)
-          UIBASEURLFORBROWSERS: http://frontend
+          # Локальный Chrome на раннере — обходим Selenoid (Docker API 1.24 vs 1.44 на GitHub)
+          UIREMOTE: local
 
       - name: Prepare Allure results with history
         run: |
