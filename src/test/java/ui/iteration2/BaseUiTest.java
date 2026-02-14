@@ -40,7 +40,9 @@ public class BaseUiTest extends BaseTest {
         if (useLocalBrowser) {
             Configuration.remote = null;
             Configuration.baseUrl = Config.getProperty("uiBaseUrl");
-            Configuration.headless = true;
+            // Headless Chrome не поддерживает native alert() — в CI нужен headed режим + Xvfb
+            String headless = Config.getProperty("uiHeadless");
+            Configuration.headless = headless == null || !"false".equalsIgnoreCase(headless.trim());
         } else {
             Configuration.remote = uiRemote;
             String forBrowsers = Config.getProperty("uiBaseUrlForBrowsers");
