@@ -41,6 +41,11 @@ public class BaseUiTest extends BaseTest {
             Configuration.remote = null;
             Configuration.baseUrl = Config.getProperty("uiBaseUrl");
             Configuration.headless = true;
+            // CI медленнее — увеличиваем таймауты (GITHUB_ACTIONS задаётся автоматически)
+            if ("true".equals(System.getenv("GITHUB_ACTIONS"))) {
+                Configuration.timeout = 15_000;
+                Configuration.pageLoadTimeout = 30_000;
+            }
         } else {
             Configuration.remote = uiRemote;
             String forBrowsers = Config.getProperty("uiBaseUrlForBrowsers");

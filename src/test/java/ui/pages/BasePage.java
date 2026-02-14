@@ -69,7 +69,9 @@ public abstract class BasePage<T extends BasePage> {
         // 3) Кастомный modal (React/Vue) — ищем текст в DOM (без эмодзи, т.к. приложение может их не показывать)
         String searchText = bankAlert.replaceAll("\\p{So}", "").trim();
         if (searchText.isEmpty()) searchText = bankAlert;
-        SelenideElement msgEl = $(Selectors.withText(searchText)).shouldBe(Condition.visible, Duration.ofSeconds(4));
+        // CI медленнее — 15 сек на появление modal (Configuration.timeout по умолчанию 4 сек)
+        long timeoutSec = Math.max(15, com.codeborne.selenide.Configuration.timeout / 1000L);
+        SelenideElement msgEl = $(Selectors.withText(searchText)).shouldBe(Condition.visible, Duration.ofSeconds(timeoutSec));
         assertThat(msgEl.getText()).contains(searchText);
         // Закрыть modal — кнопка в том же контейнере или любая видимая
         SelenideElement modal = msgEl.closest("[role='dialog'], [role='alertdialog'], .modal, .alert");
