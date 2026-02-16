@@ -75,8 +75,8 @@ jobs: # аналог этапов
       - name: Normalize swagger coverage paths
         if: always()
         run: |
-          chmod +x scripts/normalize-swagger-coverage-paths.sh
-          ./scripts/normalize-swagger-coverage-paths.sh swagger-coverage-output
+          cd ${{ github.workspace }}
+          python3 scripts/normalize_swagger_coverage_paths.py swagger-coverage-output
 
       - name: Run Swagger coverage
         if: always()
