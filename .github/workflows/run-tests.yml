@@ -60,23 +60,17 @@ jobs: # аналог этапов
           # Локальный Chrome — Selenoid не совместим с Docker API на GitHub
           UIREMOTE: local
 
-      - name: Prepare Allure history from previous report
+      - name: Prepare Allure history and build report
         if: always()
         run: |
-          mkdir -p gh-pages-allure
+          mkdir -p target/allure-results/history
           LATEST=$(ls -d gh-pages/test-report/*/ 2>/dev/null | sort -t'/' -k3 -nr | head -1)
-          if [ -n "$LATEST" ] && [ -d "${LATEST}allure-report" ]; then
-            cp -r "${LATEST}allure-report/"* gh-pages-allure/ 2>/dev/null || true
+          if [ -n "$LATEST" ] && [ -d "${LATEST}allure-report/history" ]; then
+            cp -r "${LATEST}allure-report/history/"* target/allure-results/history/ 2>/dev/null || true
           fi
-
-      - name: Build Allure report with history
-        if: always()
-        uses: simple-elf/allure-report-action@v1.7
-        with:
-          allure_results: target/allure-results
-          gh_pages: gh-pages-allure
-          allure_report: allure-report
-          allure_history: allure-history
+          mvn allure:report -q
+          mkdir -p allure-history
+          cp -r target/site/allure-maven-plugin/* allure-history/
 
       - name: Run Swagger coverage
         if: always()
