@@ -16,44 +16,44 @@ import api.models.MakeTransactionResponse;
 @AllArgsConstructor
 public enum Endpoint {
     ADMIN_USER(
-            "/admin/users",
+            "/api/v1/admin/users",
             CreateUserRequest.class,
             CreateUserResponse.class
     ),
 
     LOGIN(
-            "/auth/login",
+            "/api/v1/auth/login",
             LoginUserRequest.class,
             LoginUserResponse.class
     ),
 
     ACCOUNTS(
-            "/accounts",
+            "/api/v1/accounts",
             BaseModel.class,
             CreateAccountResponse.class
     ),
 
     CUSTOMER_ACCOUNTS(
-            "/customer/accounts",
+            "/api/v1/customer/accounts",
             BaseModel.class,
             CreateAccountResponse.class
     ),
 
     PROFILE(
-            "/customer/profile",
+            "/api/v1/customer/profile",
             BaseModel.class,
             ChangeNameResponse.class
     ),
 
     DEPOSIT(
-            "/accounts/deposit",
+            "/api/v1/accounts/deposit",
             BaseModel.class,
             MakeDepositResponse.class
 
     ),
 
     TRANSFER(
-            "/accounts/transfer",
+            "/api/v1/accounts/transfer",
             BaseModel.class,
             MakeTransactionResponse.class
     );

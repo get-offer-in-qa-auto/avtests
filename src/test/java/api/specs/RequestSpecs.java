@@ -30,7 +30,7 @@ public class RequestSpecs {
                         new ResponseLoggingFilter(),
                         new SwaggerCoverageRestAssured(),
                         new AllureRestAssured()))
-                .setBaseUri(Config.getProperty("apiBaseUrl") +Config.getProperty("apiVersion"));
+                .setBaseUri(Config.getProperty("apiBaseUrl"));
     }
 
     public static RequestSpecification unauthSpec() {
