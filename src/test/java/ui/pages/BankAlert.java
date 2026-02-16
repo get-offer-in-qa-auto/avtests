@@ -10,7 +10,7 @@ public enum BankAlert {
     USER_DEPOSITED_SUCCESSFULLY("✅ Successfully deposited $"),
     USER_DEPOSITED_UNSUCCESSFULLY("❌ Please deposit less or equal to 5000$."),
     USER_TRANSFERRED_SUCCESSFULLY("✅ Successfully transferred $"),
-    USER_TRANSFERRED_UNSUCCESSFULLY("❌ Error: Invalid transfer: insufficient funds or invalid accounts"),
+    USER_TRANSFERRED_UNSUCCESSFULLY("❌ Error: Transfer amount cannot exceed 10000"),
     USER_CHANGED_NAME_SUCCESSFULLY("✅ Name updated successfully!"),
     USER_CHANGED_NAME_TO_BLANK_STRING("❌ Please enter a valid name."),
     USER_CANNOT_CHANGE_NAME_WITH_NUMBERS("❌ Please enter a valid name."),

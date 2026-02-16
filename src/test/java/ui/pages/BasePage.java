@@ -103,6 +103,7 @@ public abstract class BasePage<T extends BasePage> {
         if (fullText.contains("Please enter a valid name")) return "Please enter a valid name";
         if (fullText.contains("Please deposit less")) return "Please deposit less";
         if (fullText.contains("Error: Invalid transfer")) return "Error: Invalid transfer";
+        if (fullText.contains("Error: Transfer amount")) return "Error: Transfer amount";
         return fullText.substring(0, Math.min(30, fullText.length()));
     }
 
