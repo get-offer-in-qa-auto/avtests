@@ -8,7 +8,7 @@ jobs: # аналог этапов
     name: Set up services (review apps) and run tests
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
       pages: write
       id-token: write
     steps: # шаги конкретной job
