@@ -1,6 +1,7 @@
 package api.specs;
 
 import api.configs.Config;
+import com.github.viclovsky.swagger.coverage.SwaggerCoverageRestAssured;
 import io.qameta.allure.restassured.AllureRestAssured;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.filter.log.RequestLoggingFilter;
@@ -24,8 +25,11 @@ public class RequestSpecs {
         return new RequestSpecBuilder()
                 .setContentType(ContentType.JSON)
                 .setAccept(ContentType.JSON)
-                .addFilters( List.of(new RequestLoggingFilter(),
-                        new ResponseLoggingFilter(), new AllureRestAssured()))
+                .addFilters(List.of(
+                        new RequestLoggingFilter(),
+                        new ResponseLoggingFilter(),
+                        new SwaggerCoverageRestAssured(),
+                        new AllureRestAssured()))
                 .setBaseUri(Config.getProperty("apiBaseUrl") +Config.getProperty("apiVersion"));
     }
 

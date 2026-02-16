@@ -1,0 +1,353 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="37959cbb-b318-4667-8021-658ad2452306" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/.dockerignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.github/workflows/build-and-push-docker.yml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.github/workflows/run-tests.yml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/.gitignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/encodings.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mvn/extensions.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mvn/wrapper/MavenWrapperDownloader.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mvn/wrapper/maven-wrapper.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mvn/wrapper/maven-wrapper.properties" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/CI-CD.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Dockerfile" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/SELENOID_SETUP.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/config/checkstyle/checkstyle.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docker-compose-selenoid.yml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/homework-screenshots/image_2026-02-14_16-41-30.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/infra/config/browsers.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/infra/config/nginx.conf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/infra/description.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/infra/docker-compose.yml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/infra/restart-docker.sh" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/maven.zip" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mvnw" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mvnw.cmd" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/requests/iteration_2.http" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/run-pipeline-local.ps1" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/run-tests-with-docker-compose.sh" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/scripts/allure-report-with-history.ps1" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/scripts/allure-report-with-history.sh" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/scripts/run-5-green-runs.ps1" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/scripts/setup-docker-secrets.ps1" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/scripts/setup-docker-secrets.sh" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/api/common/annotations/AdminSession.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/api/common/annotations/Browsers.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/api/common/annotations/UserSession.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/api/common/extensions/AdminSessionExtension.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/api/common/extensions/BrowserMatchExtension.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/api/common/extensions/TimingExtension.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/api/common/extensions/UserSessionExtension.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/api/common/storage/SessionStorage.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/api/common/utils/RetryUtils.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/api/configs/Config.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/api/generators/GeneratingRule.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/api/generators/RandomData.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/api/generators/RandomModelGenerator.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/api/helpers/AccountHelper.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/api/helpers/StepLogger.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/api/iteration2/BaseTest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/api/iteration2/ChangeNameTest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/api/iteration2/CreateAccountTest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/api/iteration2/CreateUserTest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/api/iteration2/LoginUserTest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/api/iteration2/MakeDepositTest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/api/iteration2/MakeTransactionTest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/api/models/AccountResponse.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/api/models/BaseModel.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/api/models/ChangeNameRequest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/api/models/ChangeNameResponse.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/api/models/CreateAccountResponse.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/api/models/CreateUserRequest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/api/models/CreateUserResponse.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/api/models/LoginUserRequest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/api/models/LoginUserResponse.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/api/models/MakeDepositRequest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/api/models/MakeDepositResponse.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/api/models/MakeTransactionRequest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/api/models/MakeTransactionResponse.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/api/models/UserRole.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/api/models/comparison/ModelAssertions.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/api/models/comparison/ModelComparator.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/api/models/comparison/ModelComparisonConfigLoader.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/api/requests/skelethon/Endpoint.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/api/requests/skelethon/HttpRequest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/api/requests/skelethon/interfaces/CrudEndpointInterface.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/api/requests/skelethon/requesters/CrudRequester.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/api/requests/skelethon/requesters/ValidatedCrudRequester.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/api/requests/steps/AdminSteps.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/api/requests/steps/UserSteps.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/api/specs/RequestSpecs.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/api/specs/ResponseSpecs.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/resources/config.properties" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/resources/model-comparison.properties" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/ui/elements/BaseElement.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/ui/elements/UserBage.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/ui/extensions/AlertCaptureCdpExtension.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/ui/iteration2/BaseUiTest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/ui/iteration2/ChangeNameTest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/ui/iteration2/CreateAccountTest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/ui/iteration2/CreateUserTest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/ui/iteration2/LoginUserTest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/ui/iteration2/MakeDepositTest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/ui/iteration2/MakeTransactionTest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/ui/listeners/ScreenshotOnStepListener.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/ui/pages/AdminPanel.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/ui/pages/BankAlert.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/ui/pages/BasePage.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/ui/pages/DepositMoney.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/ui/pages/EditPanel.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/ui/pages/LoginPage.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/ui/pages/TransferMoney.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/ui/pages/UserDashboard.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/resources/allure.properties" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/resources/config.properties" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/resources/junit-platform.properties" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/resources/model-comparison.properties" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="HTTP Request" />
+        <option value="Class" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="add-allure-report" />
+      </map>
+    </option>
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+    <option name="ROOT_SYNC" value="DONT_SYNC" />
+  </component>
+  <component name="HttpClientOnboardingState">{
+  &quot;isOnboardingCommentShown&quot;: true
+}</component>
+  <component name="KubernetesApiPersistence">{}</component>
+  <component name="KubernetesApiProvider">{
+  &quot;isMigrated&quot;: true
+}</component>
+  <component name="ProblemsViewState">
+    <option name="selectedTabId" value="CurrentFile" />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 7
+}</component>
+  <component name="ProjectId" id="387rh5rmHpJuCtv6VpN3n9CzrBr" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "JUnit.BaseTest.executor": "Run",
+    "JUnit.ChangeNameTest (1).executor": "Run",
+    "JUnit.ChangeNameTest.executor": "Run",
+    "JUnit.CreateAccountTest (1).executor": "Run",
+    "JUnit.CreateAccountTest.executor": "Run",
+    "JUnit.CreateUserTest (1).executor": "Run",
+    "JUnit.CreateUserTest.adminCanNotCreateUserWithInvalidData.executor": "Run",
+    "JUnit.CreateUserTest.executor": "Run",
+    "JUnit.LoginUserTest (1).executor": "Run",
+    "JUnit.LoginUserTest.executor": "Run",
+    "JUnit.LoginUserTest.userCanGenerateAuthTokenTest.executor": "Run",
+    "JUnit.MakeDepositTest (1).executor": "Run",
+    "JUnit.MakeDepositTest.executor": "Run",
+    "JUnit.MakeDepositTest.userCanMakeDepositTest.executor": "Run",
+    "JUnit.MakeDepositTest.userCanNotMakeDepositWithInvalidAmountTest.executor": "Run",
+    "JUnit.MakeTransactionTest.executor": "Run",
+    "JUnit.MakeTransactionTest.userCanMakeTransactionTest.executor": "Run",
+    "Maven.nbank-tests [clean,test].executor": "Run",
+    "Maven.nbank-tests [clean].executor": "Run",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "C:/Users/alexv/IdeaProjects/avtests",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "run.code.analysis.last.selected.profile": "pProject Default",
+    "settings.editor.selected.configurable": "advanced.settings",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\alexv\IdeaProjects\avtests\src\test\java\api" />
+      <recent name="C:\Users\alexv\IdeaProjects\avtests\src\test\test\api" />
+    </key>
+  </component>
+  <component name="RunAnythingCache">
+    <option name="myCommands">
+      <command value="mvn clean" />
+      <command value="mvn clean test" />
+    </option>
+  </component>
+  <component name="RunManager" selected="JUnit.MakeTransactionTest">
+    <configuration name="ChangeNameTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="nbank-tests" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="ui.iteration2.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="ui.iteration2" />
+      <option name="MAIN_CLASS_NAME" value="ui.iteration2.ChangeNameTest" />
+      <option name="TEST_OBJECT" value="class" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="CreateAccountTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="nbank-tests" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="ui.iteration2.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="ui.iteration2" />
+      <option name="MAIN_CLASS_NAME" value="ui.iteration2.CreateAccountTest" />
+      <option name="TEST_OBJECT" value="class" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="CreateUserTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="nbank-tests" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="ui.iteration2.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="ui.iteration2" />
+      <option name="MAIN_CLASS_NAME" value="ui.iteration2.CreateUserTest" />
+      <option name="TEST_OBJECT" value="class" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="MakeDepositTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="nbank-tests" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="ui.iteration2.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="ui.iteration2" />
+      <option name="MAIN_CLASS_NAME" value="ui.iteration2.MakeDepositTest" />
+      <option name="TEST_OBJECT" value="class" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="MakeTransactionTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="nbank-tests" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="ui.iteration2.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="ui.iteration2" />
+      <option name="MAIN_CLASS_NAME" value="ui.iteration2.MakeTransactionTest" />
+      <option name="TEST_OBJECT" value="class" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="JUnit.MakeTransactionTest" />
+        <item itemvalue="JUnit.MakeDepositTest" />
+        <item itemvalue="JUnit.CreateUserTest" />
+        <item itemvalue="JUnit.CreateAccountTest" />
+        <item itemvalue="JUnit.ChangeNameTest" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-jdk-9823dce3aa75-bf35d07a577b-intellij.indexing.shared.core-IU-252.27397.103" />
+        <option value="bundled-js-predefined-d6986cc7102b-3aa1da707db6-JavaScript-IU-252.27397.103" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="37959cbb-b318-4667-8021-658ad2452306" name="Changes" comment="" />
+      <created>1768161568421</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1768161568421</updated>
+      <workItem from="1768161570073" duration="44000" />
+      <workItem from="1768161810638" duration="11000" />
+      <workItem from="1768241894799" duration="10520000" />
+      <workItem from="1768323313161" duration="5864000" />
+      <workItem from="1768471196280" duration="6497000" />
+      <workItem from="1768484097891" duration="10427000" />
+      <workItem from="1768549536229" duration="5820000" />
+      <workItem from="1768556938190" duration="2478000" />
+      <workItem from="1768563738706" duration="1848000" />
+      <workItem from="1768568489355" duration="1921000" />
+      <workItem from="1768571552953" duration="2182000" />
+      <workItem from="1768724590854" duration="89000" />
+      <workItem from="1768854253102" duration="2460000" />
+      <workItem from="1768924145931" duration="17000" />
+      <workItem from="1768924511605" duration="5186000" />
+      <workItem from="1769020885137" duration="2997000" />
+      <workItem from="1769024235513" duration="7612000" />
+      <workItem from="1769066328845" duration="4985000" />
+      <workItem from="1769078926790" duration="14694000" />
+      <workItem from="1769174299537" duration="24250000" />
+      <workItem from="1769260321127" duration="5160000" />
+      <workItem from="1769450887880" duration="733000" />
+      <workItem from="1769451709369" duration="7177000" />
+      <workItem from="1769521175591" duration="156000" />
+      <workItem from="1769527904445" duration="572000" />
+      <workItem from="1769529787827" duration="8307000" />
+      <workItem from="1769621722424" duration="44000" />
+      <workItem from="1769625107058" duration="319000" />
+      <workItem from="1770661534885" duration="58000" />
+      <workItem from="1770727628735" duration="5108000" />
+      <workItem from="1770747564511" duration="1555000" />
+      <workItem from="1771007079085" duration="3607000" />
+      <workItem from="1771063138198" duration="4097000" />
+      <workItem from="1771264424172" duration="2331000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="UnknownFeatures">
+    <option featureType="dependencySupport" implementationName="executable:docker" />
+    <option featureType="dependencySupport" implementationName="java:org.seleniumhq.selenium:selenium-java" />
+    <option featureType="dependencySupport" implementationName="executable:kubectl" />
+    <option featureType="dependencySupport" implementationName="java:org.projectlombok:lombok" />
+  </component>
+</project>

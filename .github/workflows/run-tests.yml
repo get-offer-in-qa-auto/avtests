@@ -7,6 +7,10 @@ jobs: # аналог этапов
   run-tests:
     name: Set up services (review apps) and run tests
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
     steps: # шаги конкретной job
       - name: Checkout repository # копируем файлы репозитория внутрь CI агента
         uses: actions/checkout@v4
@@ -35,13 +39,18 @@ jobs: # аналог этапов
           sudo apt-get update -qq && sudo apt-get install -y -qq jq
           cd infra && bash restart-docker.sh && cd ..
 
-      - name: Restore Allure history
-        uses: actions/cache@v4
+      - name: Download Swagger Coverage CLI
+        run: |
+          curl -sL -o swagger-coverage.zip https://github.com/viclovsky/swagger-coverage/releases/download/1.5.0/swagger-coverage-1.5.0.zip
+          unzip -o swagger-coverage.zip
+
+      - name: Load gh-pages for report history
+        if: always()
+        uses: actions/checkout@v4
         with:
-          path: allure-history
-          key: allure-history-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            allure-history-
+          ref: gh-pages
+          path: gh-pages
+          fetch-depth: 0
 
       - name: Run tests
         run: mvn clean test -P ci -q
@@ -51,29 +60,95 @@ jobs: # аналог этапов
           # Локальный Chrome — Selenoid не совместим с Docker API на GitHub
           UIREMOTE: local
 
-      - name: Prepare Allure results with history
+      - name: Prepare Allure history from previous report
+        if: always()
         run: |
-          if [ -d allure-history ]; then
-            mkdir -p target/allure-results/history
-            cp -r allure-history/. target/allure-results/history/
+          mkdir -p gh-pages-allure
+          LATEST=$(ls -d gh-pages/test-report/*/ 2>/dev/null | sort -t'/' -k3 -nr | head -1)
+          if [ -n "$LATEST" ] && [ -d "${LATEST}allure-report" ]; then
+            cp -r "${LATEST}allure-report/"* gh-pages-allure/ 2>/dev/null || true
           fi
 
-      - name: Generate Allure report
-        run: mvn allure:report -q
+      - name: Build Allure report with history
+        if: always()
+        uses: simple-elf/allure-report-action@v1.7
+        with:
+          allure_results: target/allure-results
+          gh_pages: gh-pages-allure
+          allure_report: allure-report
+          allure_history: allure-history
 
-      - name: Save Allure history for next run
-        if: success()
+      - name: Run Swagger coverage
+        if: always()
         run: |
-          if [ -d target/site/allure-maven-plugin/history ]; then
-            mkdir -p allure-history
-            cp -r target/site/allure-maven-plugin/history/. allure-history/
+          SC_DIR=$(find . -maxdepth 2 -type d -name "swagger-coverage-*" | head -1)
+          if [ -n "$SC_DIR" ] && [ -d "swagger-coverage-output" ]; then
+            chmod +x "$SC_DIR/bin/swagger-coverage-commandline" 2>/dev/null || true
+            "$SC_DIR/bin/swagger-coverage-commandline" -s http://localhost:4111/v3/api-docs -i swagger-coverage-output || true
           fi
+
+      - name: Quality gate - API coverage >= 50%
+        if: always()
+        run: |
+          if [ -f swagger-coverage-results.json ]; then
+            chmod +x scripts/check-api-coverage.sh
+            ./scripts/check-api-coverage.sh swagger-coverage-results.json 50
+          fi
+
+      - name: Prepare test-report structure
+        if: always()
+        run: |
+          RUN_NUM=${{ github.run_number }}
+          mkdir -p pages-publish/test-report
+          if [ -d gh-pages/test-report ]; then
+            for prev in gh-pages/test-report/*/; do
+              [ -d "$prev" ] || continue
+              run=$(basename "$prev")
+              [ "$run" = "$RUN_NUM" ] && continue
+              mkdir -p "pages-publish/test-report/$run"
+              cp -r "$prev"* "pages-publish/test-report/$run/" 2>/dev/null || true
+            done
+          fi
+          mkdir -p pages-publish/test-report/$RUN_NUM/allure-report
+          mkdir -p pages-publish/test-report/$RUN_NUM/swagger-coverage
+          cp -r allure-history/* pages-publish/test-report/$RUN_NUM/allure-report/ 2>/dev/null || true
+          [ -f swagger-coverage-report.html ] && cp swagger-coverage-report.html pages-publish/test-report/$RUN_NUM/swagger-coverage/
+          [ -f swagger-coverage-results.json ] && cp swagger-coverage-results.json pages-publish/test-report/$RUN_NUM/swagger-coverage/
+          if [ -f swagger-coverage-results.json ]; then
+            FULL=$(jq -r '.coverageOperationMap.counter.full // 0' swagger-coverage-results.json)
+            PARTY=$(jq -r '.coverageOperationMap.counter.party // 0' swagger-coverage-results.json)
+            ALL=$(jq -r '.coverageOperationMap.counter.all // 1' swagger-coverage-results.json)
+            [ "$ALL" -gt 0 ] && COVERAGE=$(( (FULL + PARTY) * 100 / ALL )) || COVERAGE=0
+            mkdir -p pages-publish/test-report/$RUN_NUM/allure-report/widgets
+            echo "{\"apiCoverage\": $COVERAGE, \"full\": $FULL, \"partial\": $PARTY, \"total\": $ALL}" > pages-publish/test-report/$RUN_NUM/allure-report/widgets/coverage.json
+          fi
+
+      - name: Create index.html for test-report
+        if: always()
+        run: |
+          echo '<!DOCTYPE html><html><head><meta charset="utf-8"><title>Test Reports</title></head><body><h1>Test Reports</h1><ul>' > pages-publish/index.html
+          for dir in pages-publish/test-report/*/; do
+            [ -d "$dir" ] || continue
+            run=$(basename "$dir")
+            [[ "$run" =~ ^[0-9]+$ ]] || continue
+            echo "<li>Run #$run: <a href=\"test-report/$run/allure-report/index.html\">Allure Report</a> | <a href=\"test-report/$run/swagger-coverage/swagger-coverage-report.html\">Swagger Coverage</a></li>" >> pages-publish/index.html
+          done
+          echo '</ul></body></html>' >> pages-publish/index.html
+
+      - name: Publish report to GitHub Pages
+        if: always()
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: pages-publish
 
       - name: Upload Allure report
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: allure-report
-          path: target/site/allure-maven-plugin
+          path: pages-publish
 
       - name: Stop services
         if: always()
