@@ -54,6 +54,7 @@ C:\Users\alexv\IdeaProjects\avtests\src\test\java\api\common\annotations\Browser
 C:\Users\alexv\IdeaProjects\avtests\src\test\java\api\models\CreateAccountResponse.java
 C:\Users\alexv\IdeaProjects\avtests\src\test\java\api\generators\RandomModelGenerator.java
 C:\Users\alexv\IdeaProjects\avtests\src\test\java\api\helpers\AccountHelper.java
+C:\Users\alexv\IdeaProjects\avtests\src\test\java\api\specs\ApiPathNormalizingCoverageWriter.java
 C:\Users\alexv\IdeaProjects\avtests\src\test\java\api\common\extensions\TimingExtension.java
 C:\Users\alexv\IdeaProjects\avtests\src\test\java\api\generators\GeneratingRule.java
 C:\Users\alexv\IdeaProjects\avtests\src\test\java\api\models\CreateUserResponse.java

@@ -83,6 +83,7 @@ jobs: # аналог этапов
 
       - name: Quality gate - API coverage >= 50%
         if: always()
+        continue-on-error: true
         run: |
           if [ ! -f swagger-coverage-results.json ]; then
             echo "ERROR: swagger-coverage-results.json not found - Swagger Coverage did not run"

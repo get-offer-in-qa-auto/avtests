@@ -28,7 +28,7 @@ public class RequestSpecs {
                 .addFilters(List.of(
                         new RequestLoggingFilter(),
                         new ResponseLoggingFilter(),
-                        new SwaggerCoverageRestAssured(),
+                        new SwaggerCoverageRestAssured(new ApiPathNormalizingCoverageWriter()),
                         new AllureRestAssured()))
                 .setBaseUri(Config.getProperty("apiBaseUrl"));
     }
