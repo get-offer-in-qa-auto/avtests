@@ -72,19 +72,21 @@ jobs: # аналог этапов
           mkdir -p allure-history
           cp -r target/site/allure-maven-plugin/* allure-history/
 
-      - name: Normalize swagger coverage paths
-        if: always()
-        run: |
-          cd ${{ github.workspace }}
-          python3 scripts/normalize_swagger_coverage_paths.py swagger-coverage-output
-
       - name: Run Swagger coverage
         if: always()
         run: |
+          rm -f swagger-coverage-report.html swagger-coverage-results.json
           SC_DIR=$(find . -maxdepth 2 -type d -name "swagger-coverage-*" | head -1)
           if [ -n "$SC_DIR" ] && [ -d "swagger-coverage-output" ]; then
             chmod +x "$SC_DIR/bin/swagger-coverage-commandline" 2>/dev/null || true
-            "$SC_DIR/bin/swagger-coverage-commandline" -s http://localhost:4111/v3/api-docs -i swagger-coverage-output || true
+            "$SC_DIR/bin/swagger-coverage-commandline" -s http://localhost:4111/v3/api-docs -i swagger-coverage-output
+          else
+            echo "ERROR: swagger-coverage-output directory not found"
+            exit 1
+          fi
+          if [ ! -f swagger-coverage-report.html ] || [ ! -f swagger-coverage-results.json ]; then
+            echo "ERROR: Swagger Coverage report files were not generated"
+            exit 1
           fi
 
       - name: Quality gate - API coverage >= 50%
