@@ -72,6 +72,12 @@ jobs: # аналог этапов
           mkdir -p allure-history
           cp -r target/site/allure-maven-plugin/* allure-history/
 
+      - name: Normalize swagger coverage paths
+        if: always()
+        run: |
+          chmod +x scripts/normalize-swagger-coverage-paths.sh
+          ./scripts/normalize-swagger-coverage-paths.sh swagger-coverage-output
+
       - name: Run Swagger coverage
         if: always()
         run: |
