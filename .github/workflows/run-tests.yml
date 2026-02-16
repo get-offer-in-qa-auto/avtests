@@ -76,14 +76,17 @@ jobs: # аналог этапов
         if: always()
         run: |
           rm -f swagger-coverage-report.html swagger-coverage-results.json
-          SC_DIR=$(find . -maxdepth 2 -type d -name "swagger-coverage-*" | head -1)
-          if [ -n "$SC_DIR" ] && [ -d "swagger-coverage-output" ]; then
-            chmod +x "$SC_DIR/bin/swagger-coverage-commandline" 2>/dev/null || true
-            "$SC_DIR/bin/swagger-coverage-commandline" -s http://localhost:4111/v3/api-docs -i swagger-coverage-output
-          else
+          if [ ! -d "swagger-coverage-output" ]; then
             echo "ERROR: swagger-coverage-output directory not found"
             exit 1
           fi
+          SC_BIN=$(find . -maxdepth 4 -type f -name "swagger-coverage-commandline" ! -path "./swagger-coverage-output/*" | head -1)
+          if [ -z "$SC_BIN" ]; then
+            echo "ERROR: swagger-coverage-commandline binary not found"
+            exit 1
+          fi
+          chmod +x "$SC_BIN" 2>/dev/null || true
+          "$SC_BIN" -s http://localhost:4111/v3/api-docs -i swagger-coverage-output
           if [ ! -f swagger-coverage-report.html ] || [ ! -f swagger-coverage-results.json ]; then
             echo "ERROR: Swagger Coverage report files were not generated"
             exit 1
