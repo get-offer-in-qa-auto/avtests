@@ -37,7 +37,7 @@ jobs: # аналог этапов
       - name: Set up services
         run: |
           sudo apt-get update -qq && sudo apt-get install -y -qq jq
-          cd infra && bash restart-docker.sh && cd ..
+          cd ${{ github.workspace }}/infra && bash restart-docker.sh && cd ..
 
       - name: Download Swagger Coverage CLI
         run: |
@@ -152,4 +152,4 @@ jobs: # аналог этапов
 
       - name: Stop services
         if: always()
-        run: cd infra && docker compose down
+        run: cd ${{ github.workspace }}/infra && docker compose down
