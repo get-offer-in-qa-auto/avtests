@@ -1,5 +1,6 @@
 package api.requests.steps;
 
+import api.common.utils.RetryUtils;
 import api.generators.RandomModelGenerator;
 import api.models.CreateUserRequest;
 import api.models.CreateUserResponse;
@@ -25,9 +26,15 @@ public class AdminSteps {
     }
 
     public static List<CreateUserResponse> getAllUsers() {
-        return new ValidatedCrudRequester<CreateUserResponse>(
-                RequestSpecs.adminSpec(),
-                Endpoint.ADMIN_USER,
-                ResponseSpecs.requestReturnsOK()).getAll(CreateUserResponse[].class);
+        return RetryUtils.retry(
+                "Get all admin users",
+                () -> new ValidatedCrudRequester<CreateUserResponse>(
+                        RequestSpecs.adminSpec(),
+                        Endpoint.ADMIN_USER,
+                        ResponseSpecs.requestReturnsOK()).getAll(CreateUserResponse[].class),
+                users -> users != null,
+                3,
+                1000
+        );
     }
 }
