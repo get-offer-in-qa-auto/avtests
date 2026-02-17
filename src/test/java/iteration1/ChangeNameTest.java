@@ -46,6 +46,7 @@ public class ChangeNameTest extends BaseTest {
                 .get(0);
 
         ModelAssertions.assertThatModels(changeNameRequest, nameAfterResponse).match();
+
     }
 
     @ParameterizedTest
