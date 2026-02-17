@@ -60,4 +60,8 @@ public class TransferMoney extends BasePage<TransferMoney> {
         sendTransferButton.click();
         return this;
     }
+
+    public String getSuccessTransferMessage(String amount, String accountNumber) {
+        return BankAlert.USER_TRANSFERRED_SUCCESSFULLY.getMessage() + amount + " to account " + accountNumber + "!";
+    }
 }

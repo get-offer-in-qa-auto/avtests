@@ -42,4 +42,8 @@ public class DepositMoney extends BasePage<DepositMoney> {
         buttonDeposit.click();
         return this;
     }
+
+    public String getSuccessDepositMessage(String amount, String accountNumber) {
+        return BankAlert.USER_DEPOSITED_SUCCESSFULLY.getMessage() + amount + " to account " + accountNumber + "!";
+    }
 }

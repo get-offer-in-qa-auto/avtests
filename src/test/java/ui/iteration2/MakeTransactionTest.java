@@ -45,14 +45,14 @@ public class MakeTransactionTest extends BaseUiTest {
 
         depositPage.enterAmount(depositAmount).makeDeposit();
         depositPage.checkAlertMessageAndAccept(
-                BankAlert.USER_DEPOSITED_SUCCESSFULLY.getMessage() + depositAmount + " to account " + accountNumber + "!");
+                depositPage.getSuccessDepositMessage(depositAmount, accountNumber));
 
         // Делаем второй депозит на первый аккаунт через UI
         depositPage = new UserDashboard().makeDeposit().getPage(DepositMoney.class);
         depositPage.chooseAccount().selectAccountByText(accountNumber);
         depositPage.enterAmount(depositAmount).makeDeposit();
         depositPage.checkAlertMessageAndAccept(
-                BankAlert.USER_DEPOSITED_SUCCESSFULLY.getMessage() + depositAmount + " to account " + accountNumber + "!");
+                depositPage.getSuccessDepositMessage(depositAmount, accountNumber));
 
         TransferMoney transferPage = new UserDashboard().makeTransaction().getPage(TransferMoney.class);
         transferPage.chooseAccount().selectAccountByText(firstAccountNumber)
@@ -63,7 +63,7 @@ public class MakeTransactionTest extends BaseUiTest {
                 .makeTransfer();
 
         transferPage.checkAlertMessageAndAccept(
-                BankAlert.USER_TRANSFERRED_SUCCESSFULLY.getMessage() + transferAmount + " to account " + secondAccountNumber + "!");
+                transferPage.getSuccessTransferMessage(transferAmount, secondAccountNumber));
 
         List<CreateAccountResponse> finalAccounts = SessionStorage.getSteps().getAllAccounts();
         CreateAccountResponse firstAccount = finalAccounts.stream()
@@ -107,14 +107,14 @@ public class MakeTransactionTest extends BaseUiTest {
 
         depositPage.enterAmount(depositAmount).makeDeposit();
         depositPage.checkAlertMessageAndAccept(
-                BankAlert.USER_DEPOSITED_SUCCESSFULLY.getMessage() + depositAmount + " to account " + firstAccountNumber + "!");
+                depositPage.getSuccessDepositMessage(depositAmount, firstAccountNumber));
 
         // Делаем второй депозит на первый аккаунт через UI
         depositPage = new UserDashboard().makeDeposit().getPage(DepositMoney.class);
         depositPage.chooseAccount().selectAccountByText(firstAccountNumber);
         depositPage.enterAmount(depositAmount).makeDeposit();
         depositPage.checkAlertMessageAndAccept(
-                BankAlert.USER_DEPOSITED_SUCCESSFULLY.getMessage() + depositAmount + " to account " + firstAccountNumber + "!");
+                depositPage.getSuccessDepositMessage(depositAmount, firstAccountNumber));
 
         TransferMoney transferPage = new UserDashboard().makeTransaction().getPage(TransferMoney.class);
         transferPage.chooseAccount().selectAccountByText(firstAccountNumber)
@@ -143,13 +143,13 @@ public class MakeTransactionTest extends BaseUiTest {
 
     public static Stream<Arguments> validTransactionData() {
         return Stream.of(
-                Arguments.of(1, "5000.00", "10000.00", "Noname")
+                Arguments.of(1, "5000.00", "10000.00", UserDashboard.DEFAULT_USER_NAME)
         );
     }
 
     public static Stream<Arguments> invalidTransactionData() {
         return Stream.of(
-                Arguments.of(1, "5000.00", "10000.01", "Noname")
+                Arguments.of(1, "5000.00", "10000.01", UserDashboard.DEFAULT_USER_NAME)
         );
     }
 }

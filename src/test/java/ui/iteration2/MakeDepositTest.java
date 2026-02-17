@@ -34,7 +34,7 @@ public class MakeDepositTest extends BaseUiTest {
         depositPage.enterAmount(amount).makeDeposit();
         
         depositPage.checkAlertMessageAndAccept(
-                BankAlert.USER_DEPOSITED_SUCCESSFULLY.getMessage() + amount + " to account " + accountNumber + "!");
+                depositPage.getSuccessDepositMessage(amount, accountNumber));
 
         // Проверяем, что депозит сделан на API
         List<CreateAccountResponse> accounts = SessionStorage.getSteps().getAllAccounts();

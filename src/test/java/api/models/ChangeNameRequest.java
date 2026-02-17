@@ -1,6 +1,4 @@
-package models;
-
-import api.models.BaseModel;
+package api.models;
 import api.generators.GeneratingRule;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

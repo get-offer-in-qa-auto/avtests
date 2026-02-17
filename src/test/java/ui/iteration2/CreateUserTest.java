@@ -1,9 +1,10 @@
 package ui.iteration2;
 
+import api.generators.RandomData;
 import api.generators.RandomModelGenerator;
 import api.models.CreateUserRequest;
 import api.models.CreateUserResponse;
-import models.comparison.ModelAssertions;
+import api.models.comparison.ModelAssertions;
 import api.requests.steps.AdminSteps;
 import api.common.annotations.AdminSession;
 import org.junit.jupiter.api.Test;
@@ -35,7 +36,7 @@ public class CreateUserTest extends BaseUiTest {
     @AdminSession
     public void adminCannotCreateUserWithInvalidDataTest() {
         CreateUserRequest newUser = RandomModelGenerator.generate(CreateUserRequest.class);
-        newUser.setUsername("a");
+        newUser.setUsername(RandomData.getShortUsername());
 
         assertTrue(new AdminPanel().open().createUser(newUser.getUsername(), newUser.getPassword())
                 .checkAlertMessageAndAccept(BankAlert.USERNAME_MUST_BE_BETWEEN_3_AND_15_CHARACTERS.getMessage())

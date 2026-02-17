@@ -20,10 +20,27 @@ public class RandomData {
     }
 
     public static String getName() {
-        int firstWordLength = random.nextInt(10) + 1; // от 1 до 10 символов
-        int secondWordLength = random.nextInt(10) + 1; // от 1 до 10 символов
+        int firstWordLength = random.nextInt(10) + 1;
+        int secondWordLength = random.nextInt(10) + 1;
         return generateRandomString(LETTERS, firstWordLength) + " " +
                 generateRandomString(LETTERS, secondWordLength);
+    }
+
+    public static String getNameWithNumbers() {
+        return getName() + generateRandomString(NUMBERS, random.nextInt(3) + 1);
+    }
+
+    public static String getNameWithSymbols() {
+        String symbols = "%$&@#";
+        return getName() + symbols.charAt(random.nextInt(symbols.length()));
+    }
+
+    public static String getNameWithoutSpace() {
+        return generateRandomString(LETTERS, random.nextInt(10) + 3);
+    }
+
+    public static String getShortUsername() {
+        return generateRandomString(LETTERS, random.nextInt(2) + 1);
     }
 
     private static String generateRandomString(String characters, int length) {

@@ -2,12 +2,13 @@ package ui.iteration2;
 
 import api.common.annotations.UserSession;
 import api.common.storage.SessionStorage;
+import api.generators.RandomData;
 import api.requests.skelethon.Endpoint;
 import api.requests.skelethon.requesters.ValidatedCrudRequester;
 import api.specs.RequestSpecs;
 import api.specs.ResponseSpecs;
 import com.codeborne.selenide.Condition;
-import models.ChangeNameResponse;
+import api.models.ChangeNameResponse;
 import org.junit.jupiter.api.Test;
 import ui.pages.BankAlert;
 import ui.pages.EditPanel;
@@ -20,30 +21,18 @@ public class ChangeNameTest extends BaseUiTest {
     @Test
     @UserSession
     public void userCanChangeNameTest() {
-        // Получаем исходное имя через API
-        ChangeNameResponse initialProfile = (ChangeNameResponse) new ValidatedCrudRequester<ChangeNameResponse>(
-                RequestSpecs.authAsUser(SessionStorage.getUser().getUsername(), SessionStorage.getUser().getPassword()),
-                Endpoint.PROFILE,
-                ResponseSpecs.requestReturnsOK())
-                .get(0);
-        String originalName = initialProfile != null ? initialProfile.getName() : null;
+        ChangeNameResponse initialProfile = getProfile();
+        String originalName = initialProfile.getName();
 
-        // Меняем имя через UI
         EditPanel editProfilePage = new UserDashboard().changeName().getPage(EditPanel.class);
         String newName = editProfilePage.changeName();
         editProfilePage.checkAlertMessageAndAccept(
                 BankAlert.USER_CHANGED_NAME_SUCCESSFULLY.getMessage());
 
-        // Проверяем на UI, что имя изменилось
         editProfilePage = new UserDashboard().changeName().getPage(EditPanel.class);
         editProfilePage.getEnterNewName().shouldHave(Condition.value(newName));
 
-        // Проверяем на API, что имя изменилось
-        ChangeNameResponse updatedProfile = (ChangeNameResponse) new ValidatedCrudRequester<ChangeNameResponse>(
-                RequestSpecs.authAsUser(SessionStorage.getUser().getUsername(), SessionStorage.getUser().getPassword()),
-                Endpoint.PROFILE,
-                ResponseSpecs.requestReturnsOK())
-                .get(0);
+        ChangeNameResponse updatedProfile = getProfile();
         assertThat(updatedProfile).isNotNull();
         assertThat(updatedProfile.getName()).isEqualTo(newName);
         assertThat(updatedProfile.getName()).isNotEqualTo(originalName);
@@ -52,132 +41,80 @@ public class ChangeNameTest extends BaseUiTest {
     @Test
     @UserSession
     public void userCanNotLeaveNameEmptyTest() {
-        // Получаем исходное имя через API
-        ChangeNameResponse initialProfile = (ChangeNameResponse) new ValidatedCrudRequester<ChangeNameResponse>(
-                RequestSpecs.authAsUser(SessionStorage.getUser().getUsername(), SessionStorage.getUser().getPassword()),
-                Endpoint.PROFILE,
-                ResponseSpecs.requestReturnsOK())
-                .get(0);
-        String originalName = initialProfile != null ? initialProfile.getName() : null;
+        ChangeNameResponse initialProfile = getProfile();
+        String originalName = initialProfile.getName();
 
-        // Меняем имя через UI
         EditPanel editProfilePage = new UserDashboard().open().changeName().getPage(EditPanel.class);
         editProfilePage.changeName(" ");
         editProfilePage.checkAlertMessageAndAccept(
                 BankAlert.USER_CHANGED_NAME_TO_BLANK_STRING.getMessage());
 
-        // Проверяем на UI, что имя не изменилось
         editProfilePage = new EditPanel().open().getPage(EditPanel.class);
-        String displayedValue = editProfilePage.getEnterNewName().getValue();
-        String expectedValue = originalName != null ? originalName : "";
-        assertThat(displayedValue).isEqualTo(expectedValue);
+        assertThat(editProfilePage.getEnterNewName().getValue()).isEqualTo(originalName);
 
-        // Проверяем на API, что имя не изменилось
-        ChangeNameResponse updatedProfile = (ChangeNameResponse) new ValidatedCrudRequester<ChangeNameResponse>(
-                RequestSpecs.authAsUser(SessionStorage.getUser().getUsername(), SessionStorage.getUser().getPassword()),
-                Endpoint.PROFILE,
-                ResponseSpecs.requestReturnsOK())
-                .get(0);
-        String updatedName = updatedProfile != null ? updatedProfile.getName() : null;
-        assertThat(updatedName).isEqualTo(originalName);
+        ChangeNameResponse updatedProfile = getProfile();
+        assertThat(updatedProfile.getName()).isEqualTo(originalName);
     }
 
     @Test
     @UserSession
     public void userCanNotChangeNameWithNumbers() {
-        // Получаем исходное имя через API
-        ChangeNameResponse initialProfile = (ChangeNameResponse) new ValidatedCrudRequester<ChangeNameResponse>(
-                RequestSpecs.authAsUser(SessionStorage.getUser().getUsername(), SessionStorage.getUser().getPassword()),
-                Endpoint.PROFILE,
-                ResponseSpecs.requestReturnsOK())
-                .get(0);
-        String originalName = initialProfile != null ? initialProfile.getName() : null;
+        ChangeNameResponse initialProfile = getProfile();
+        String originalName = initialProfile.getName();
 
-        // Меняем имя через UI
         EditPanel editProfilePage = new UserDashboard().open().changeName().getPage(EditPanel.class);
-        editProfilePage.changeName("Alex Petrov93");
+        editProfilePage.changeName(RandomData.getNameWithNumbers());
         editProfilePage.checkAlertMessageAndAccept(
                 BankAlert.USER_CANNOT_CHANGE_NAME_WITH_NUMBERS.getMessage());
 
-        // Проверяем на UI, что имя не изменилось
         editProfilePage = new EditPanel().open().getPage(EditPanel.class);
-        String displayedValue = editProfilePage.getEnterNewName().getValue();
-        String expectedValue = originalName != null ? originalName : "";
-        assertThat(displayedValue).isEqualTo(expectedValue);
+        assertThat(editProfilePage.getEnterNewName().getValue()).isEqualTo(originalName);
 
-        // Проверяем на API, что имя не изменилось
-        ChangeNameResponse updatedProfile = (ChangeNameResponse) new ValidatedCrudRequester<ChangeNameResponse>(
-                RequestSpecs.authAsUser(SessionStorage.getUser().getUsername(), SessionStorage.getUser().getPassword()),
-                Endpoint.PROFILE,
-                ResponseSpecs.requestReturnsOK())
-                .get(0);
-        String updatedName = updatedProfile != null ? updatedProfile.getName() : null;
-        assertThat(updatedName).isEqualTo(originalName);
+        ChangeNameResponse updatedProfile = getProfile();
+        assertThat(updatedProfile.getName()).isEqualTo(originalName);
     }
 
     @Test
     @UserSession
     public void userCanNotChangeNameWithSymbols() {
-        // Получаем исходное имя через API
-        ChangeNameResponse initialProfile = (ChangeNameResponse) new ValidatedCrudRequester<ChangeNameResponse>(
-                RequestSpecs.authAsUser(SessionStorage.getUser().getUsername(), SessionStorage.getUser().getPassword()),
-                Endpoint.PROFILE,
-                ResponseSpecs.requestReturnsOK())
-                .get(0);
-        String originalName = initialProfile != null ? initialProfile.getName() : null;
+        ChangeNameResponse initialProfile = getProfile();
+        String originalName = initialProfile.getName();
 
-        // Меняем имя через UI
         EditPanel editProfilePage = new UserDashboard().open().changeName().getPage(EditPanel.class);
-        editProfilePage.changeName("Alex Petrov%");
+        editProfilePage.changeName(RandomData.getNameWithSymbols());
         editProfilePage.checkAlertMessageAndAccept(
                 BankAlert.USER_CANNOT_CHANGE_NAME_WITH_SYMBOLS.getMessage());
 
-        // Проверяем на UI, что имя не изменилось
         editProfilePage = new EditPanel().open().getPage(EditPanel.class);
-        String displayedValue = editProfilePage.getEnterNewName().getValue();
-        String expectedValue = originalName != null ? originalName : "";
-        assertThat(displayedValue).isEqualTo(expectedValue);
+        assertThat(editProfilePage.getEnterNewName().getValue()).isEqualTo(originalName);
 
-        // Проверяем на API, что имя не изменилось
-        ChangeNameResponse updatedProfile = (ChangeNameResponse) new ValidatedCrudRequester<ChangeNameResponse>(
-                RequestSpecs.authAsUser(SessionStorage.getUser().getUsername(), SessionStorage.getUser().getPassword()),
-                Endpoint.PROFILE,
-                ResponseSpecs.requestReturnsOK())
-                .get(0);
-        String updatedName = updatedProfile != null ? updatedProfile.getName() : null;
-        assertThat(updatedName).isEqualTo(originalName);
+        ChangeNameResponse updatedProfile = getProfile();
+        assertThat(updatedProfile.getName()).isEqualTo(originalName);
     }
 
     @Test
     @UserSession
     public void userCanNotChangeNameWithSpace() {
-        // Получаем исходное имя через API
-        ChangeNameResponse initialProfile = (ChangeNameResponse) new ValidatedCrudRequester<ChangeNameResponse>(
-                RequestSpecs.authAsUser(SessionStorage.getUser().getUsername(), SessionStorage.getUser().getPassword()),
-                Endpoint.PROFILE,
-                ResponseSpecs.requestReturnsOK())
-                .get(0);
-        String originalName = initialProfile != null ? initialProfile.getName() : null;
+        ChangeNameResponse initialProfile = getProfile();
+        String originalName = initialProfile.getName();
 
-        // Меняем имя через UI
         EditPanel editProfilePage = new UserDashboard().open().changeName().getPage(EditPanel.class);
-        editProfilePage.changeName("AlexPetrov");
+        editProfilePage.changeName(RandomData.getNameWithoutSpace());
         editProfilePage.checkAlertMessageAndAccept(
                 BankAlert.USER_CANNOT_CHANGE_NAME_WITHOUT_SPACE.getMessage());
 
-        // Проверяем на UI, что имя не изменилось
         editProfilePage = new EditPanel().open().getPage(EditPanel.class);
-        String displayedValue = editProfilePage.getEnterNewName().getValue();
-        String expectedValue = originalName != null ? originalName : "";
-        assertThat(displayedValue).isEqualTo(expectedValue);
+        assertThat(editProfilePage.getEnterNewName().getValue()).isEqualTo(originalName);
 
-        // Проверяем на API, что имя не изменилось
-        ChangeNameResponse updatedProfile = (ChangeNameResponse) new ValidatedCrudRequester<ChangeNameResponse>(
+        ChangeNameResponse updatedProfile = getProfile();
+        assertThat(updatedProfile.getName()).isEqualTo(originalName);
+    }
+
+    private ChangeNameResponse getProfile() {
+        return (ChangeNameResponse) new ValidatedCrudRequester<ChangeNameResponse>(
                 RequestSpecs.authAsUser(SessionStorage.getUser().getUsername(), SessionStorage.getUser().getPassword()),
                 Endpoint.PROFILE,
                 ResponseSpecs.requestReturnsOK())
                 .get(0);
-        String updatedName = updatedProfile != null ? updatedProfile.getName() : null;
-        assertThat(updatedName).isEqualTo(originalName);
     }
 }
