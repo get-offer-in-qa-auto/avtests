@@ -1,15 +1,20 @@
 package iteration1;
 
-import generators.RandomData;
+import models.ChangeNameResponse;
 import models.CreateUserRequest;
+import models.CreateUserResponse;
 import models.LoginUserRequest;
-import models.UserRole;
+import models.comparison.ModelAssertions;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
-import requests.AdminCreateUserRequester;
-import requests.LoginUserRequester;
+import requests.skelethon.Endpoint;
+import requests.skelethon.requesters.CrudRequester;
+import requests.skelethon.requesters.ValidatedCrudRequester;
+import requests.steps.AdminSteps;
 import specs.RequestSpecs;
 import specs.ResponseSpecs;
+
+import static specs.ResponseSpecs.AUTHORIZATION_HEADER;
 
 public class LoginUserTest extends BaseTest {
 
@@ -20,27 +25,36 @@ public class LoginUserTest extends BaseTest {
                 .password("admin")
                 .build();
 
-        new LoginUserRequester(RequestSpecs.unauthSpec(),
+        new ValidatedCrudRequester<CreateUserResponse>(RequestSpecs.unauthSpec(),
+                Endpoint.LOGIN,
                 ResponseSpecs.requestReturnsOK())
                 .post(userRequest);
+
+        ChangeNameResponse profileResponse = new ValidatedCrudRequester<ChangeNameResponse>(
+                RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
+                Endpoint.PROFILE,
+                ResponseSpecs.requestReturnsOK())
+                .get(0);
+
+        org.assertj.core.api.Assertions.assertThat(profileResponse.getUsername()).isEqualTo(userRequest.getUsername());
     }
 
     @Test
     public void userCanGenerateAuthTokenTest() {
-        CreateUserRequest userRequest = CreateUserRequest.builder()
-                .username(RandomData.getUsername())
-                .password(RandomData.getPassword())
-                .role(UserRole.USER.toString())
-                .build();
+        CreateUserRequest userRequest = AdminSteps.createUser();
 
-        new AdminCreateUserRequester(
-                RequestSpecs.adminSpec(),
-                ResponseSpecs.entityWasCreated())
-                .post(userRequest);
-
-        new LoginUserRequester(RequestSpecs.unauthSpec(),
+        new CrudRequester(RequestSpecs.unauthSpec(),
+                Endpoint.LOGIN,
                 ResponseSpecs.requestReturnsOK())
                 .post(LoginUserRequest.builder().username(userRequest.getUsername()).password(userRequest.getPassword()).build())
-                .header("Authorization", Matchers.notNullValue());
+                .header(AUTHORIZATION_HEADER, Matchers.notNullValue());
+
+        ChangeNameResponse profileResponse = new ValidatedCrudRequester<ChangeNameResponse>(
+                RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
+                Endpoint.PROFILE,
+                ResponseSpecs.requestReturnsOK())
+                .get(0);
+
+        ModelAssertions.assertThatModels(userRequest, profileResponse).match();
     }
 }

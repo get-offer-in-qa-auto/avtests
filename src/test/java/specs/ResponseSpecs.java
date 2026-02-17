@@ -5,8 +5,12 @@ import io.restassured.specification.ResponseSpecification;
 import org.apache.http.HttpStatus;
 import org.hamcrest.Matchers;
 
+import java.util.List;
+
 public class ResponseSpecs {
     private ResponseSpecs() {}
+
+    public static final String AUTHORIZATION_HEADER = "Authorization";
 
     private static ResponseSpecBuilder defaultResponseBuilder() {
         return new ResponseSpecBuilder();

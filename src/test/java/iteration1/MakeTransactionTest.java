@@ -1,21 +1,16 @@
 package iteration1;
 
-import generators.RandomData;
 import helpers.AccountHelper;
-import models.CreateAccountResponse;
-import models.CreateUserRequest;
-import models.MakeDepositRequest;
-import models.MakeTransactionRequest;
-import models.UserRole;
-import org.assertj.core.data.Offset;
+import models.*;
+import models.comparison.ModelAssertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import requests.AdminCreateUserRequester;
-import requests.CreateAccountRequester;
-import requests.MakeDepositRequester;
-import requests.MakeTransactionRequester;
+import requests.skelethon.Endpoint;
+import requests.skelethon.requesters.CrudRequester;
+import requests.skelethon.requesters.ValidatedCrudRequester;
+import requests.steps.AdminSteps;
 import specs.RequestSpecs;
 import specs.ResponseSpecs;
 
@@ -24,128 +19,200 @@ import java.util.stream.Stream;
 public class MakeTransactionTest extends BaseTest {
 
     @ParameterizedTest
-    @MethodSource("validTransactionAmount")
-    public void userCanMakeTransactionTest(double amount) {
-        CreateUserRequest userRequest = CreateUserRequest.builder()
-                .username(RandomData.getUsername())
-                .password(RandomData.getPassword())
-                .role(UserRole.USER.toString())
+    @MethodSource("validTransactionAmountSmall")
+    public void userCanMakeTransactionWithSmallAmountTest(double amount) {
+        CreateUserRequest userRequest = AdminSteps.createUser();
+
+        CreateAccountResponse firstAccountResponse = new ValidatedCrudRequester<CreateAccountResponse>(
+                RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
+                Endpoint.ACCOUNTS,
+                ResponseSpecs.entityWasCreated())
+                .post(null);
+
+        int firstAccountId = (int) firstAccountResponse.getId();
+
+        CreateAccountResponse secondAccountResponse = new ValidatedCrudRequester<CreateAccountResponse>(
+                RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
+                Endpoint.ACCOUNTS,
+                ResponseSpecs.entityWasCreated())
+                .post(null);
+
+        int secondAccountId = (int) secondAccountResponse.getId();
+
+        double depositAmount = amount + 100.0;
+        MakeDepositRequest depositRequest = MakeDepositRequest.builder()
+                .id(firstAccountId)
+                .balance(depositAmount)
                 .build();
+        new ValidatedCrudRequester<MakeDepositResponse>(
+                RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
+                Endpoint.DEPOSIT,
+                ResponseSpecs.requestReturnsOK())
+                .post(depositRequest);
 
-        new AdminCreateUserRequester(RequestSpecs.adminSpec(), ResponseSpecs.entityWasCreated())
-                .post(userRequest);
-
-        CreateAccountResponse senderAccountResponse = new CreateAccountRequester(RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
-                ResponseSpecs.entityWasCreated())
-                .post(null)
-                .extract()
-                .as(CreateAccountResponse.class);
-
-        int senderAccountId = senderAccountResponse.getId();
-
-        CreateAccountResponse receiverAccountResponse = new CreateAccountRequester(RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
-                ResponseSpecs.entityWasCreated())
-                .post(null)
-                .extract()
-                .as(CreateAccountResponse.class);
-
-        int receiverAccountId = receiverAccountResponse.getId();
-
-        double totalDepositNeeded = amount + 100.0; // +100 для запаса
-        double depositAmount = 0.0;
-        
-        while (depositAmount < totalDepositNeeded) {
-            double currentDeposit = Math.min(totalDepositNeeded - depositAmount, 5000.0);
-            MakeDepositRequest depositRequest = MakeDepositRequest.builder()
-                    .id(senderAccountId)
-                    .balance(currentDeposit)
-                    .build();
-
-            new MakeDepositRequester(RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
-                    ResponseSpecs.requestReturnsOK())
-                    .post(depositRequest);
-            
-            depositAmount += currentDeposit;
-        }
+        MakeDepositResponse senderAccountBefore = AccountHelper.getAccountById(firstAccountId, userRequest.getUsername(), userRequest.getPassword());
+        MakeDepositResponse receiverAccountBefore = AccountHelper.getAccountById(secondAccountId, userRequest.getUsername(), userRequest.getPassword());
 
         MakeTransactionRequest transactionRequest = MakeTransactionRequest.builder()
-                .senderAccountId(senderAccountId)
-                .receiverAccountId(receiverAccountId)
+                .senderAccountId(firstAccountId)
+                .receiverAccountId(secondAccountId)
                 .amount(amount)
                 .build();
 
-        new MakeTransactionRequester(RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
+        new ValidatedCrudRequester<MakeTransactionResponse>(
+                RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
+                Endpoint.TRANSFER,
                 ResponseSpecs.requestReturnsOK())
                 .post(transactionRequest);
 
-        double senderBalanceAfter = AccountHelper.getAccountBalance(senderAccountId, userRequest.getUsername(), userRequest.getPassword());
-        double receiverBalanceAfter = AccountHelper.getAccountBalance(receiverAccountId, userRequest.getUsername(), userRequest.getPassword());
+        MakeDepositResponse senderAccountAfter = AccountHelper.getAccountById(firstAccountId, userRequest.getUsername(), userRequest.getPassword());
+        MakeDepositResponse receiverAccountAfter = AccountHelper.getAccountById(secondAccountId, userRequest.getUsername(), userRequest.getPassword());
 
-        softly.assertThat(senderBalanceAfter).isCloseTo(depositAmount - amount, Offset.offset(0.01));
-        softly.assertThat(receiverBalanceAfter).isCloseTo(amount, Offset.offset(0.01));
+        MakeDepositResponse expectedSenderAccount = MakeDepositResponse.builder()
+                .id(firstAccountId)
+                .balance(senderAccountBefore.getBalance() - amount)
+                .build();
+
+        MakeDepositResponse expectedReceiverAccount = MakeDepositResponse.builder()
+                .id(secondAccountId)
+                .balance(receiverAccountBefore.getBalance() + amount)
+                .build();
+
+        ModelAssertions.assertThatModels(expectedSenderAccount, senderAccountAfter).match();
+        ModelAssertions.assertThatModels(expectedReceiverAccount, receiverAccountAfter).match();
     }
 
-    public static Stream<Arguments> validTransactionAmount() {
+    @ParameterizedTest
+    @MethodSource("validTransactionAmountLarge")
+    public void userCanMakeTransactionWithLargeAmountTest(double amount) {
+        CreateUserRequest userRequest = AdminSteps.createUser();
+
+        CreateAccountResponse firstAccountResponse = new ValidatedCrudRequester<CreateAccountResponse>(
+                RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
+                Endpoint.ACCOUNTS,
+                ResponseSpecs.entityWasCreated())
+                .post(null);
+
+        int firstAccountId = (int) firstAccountResponse.getId();
+
+        CreateAccountResponse secondAccountResponse = new ValidatedCrudRequester<CreateAccountResponse>(
+                RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
+                Endpoint.ACCOUNTS,
+                ResponseSpecs.entityWasCreated())
+                .post(null);
+
+        int secondAccountId = (int) secondAccountResponse.getId();
+
+        double remainingNeeded = amount + 100.0;
+        while (remainingNeeded > 0) {
+            double currentDeposit = Math.min(remainingNeeded, 5000.0);
+            MakeDepositRequest depositRequest = MakeDepositRequest.builder()
+                    .id(firstAccountId)
+                    .balance(currentDeposit)
+                    .build();
+            new ValidatedCrudRequester<MakeDepositResponse>(
+                    RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
+                    Endpoint.DEPOSIT,
+                    ResponseSpecs.requestReturnsOK())
+                    .post(depositRequest);
+            remainingNeeded -= currentDeposit;
+        }
+
+        MakeDepositResponse senderAccountBefore = AccountHelper.getAccountById(firstAccountId, userRequest.getUsername(), userRequest.getPassword());
+        MakeDepositResponse receiverAccountBefore = AccountHelper.getAccountById(secondAccountId, userRequest.getUsername(), userRequest.getPassword());
+
+        MakeTransactionRequest transactionRequest = MakeTransactionRequest.builder()
+                .senderAccountId(firstAccountId)
+                .receiverAccountId(secondAccountId)
+                .amount(amount)
+                .build();
+
+        new ValidatedCrudRequester<MakeTransactionResponse>(
+                RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
+                Endpoint.TRANSFER,
+                ResponseSpecs.requestReturnsOK())
+                .post(transactionRequest);
+
+        MakeDepositResponse senderAccountAfter = AccountHelper.getAccountById(firstAccountId, userRequest.getUsername(), userRequest.getPassword());
+        MakeDepositResponse receiverAccountAfter = AccountHelper.getAccountById(secondAccountId, userRequest.getUsername(), userRequest.getPassword());
+
+        MakeDepositResponse expectedSenderAccount = MakeDepositResponse.builder()
+                .id(firstAccountId)
+                .balance(senderAccountBefore.getBalance() - amount)
+                .build();
+
+        MakeDepositResponse expectedReceiverAccount = MakeDepositResponse.builder()
+                .id(secondAccountId)
+                .balance(receiverAccountBefore.getBalance() + amount)
+                .build();
+
+        ModelAssertions.assertThatModels(expectedSenderAccount, senderAccountAfter).match();
+        ModelAssertions.assertThatModels(expectedReceiverAccount, receiverAccountAfter).match();
+    }
+
+    public static Stream<Arguments> validTransactionAmountSmall() {
         return Stream.of(
                 Arguments.of(500),
-                Arguments.of(9999.99),
                 Arguments.of(0.01));
+    }
 
+    public static Stream<Arguments> validTransactionAmountLarge() {
+        return Stream.of(
+                Arguments.of(9999.99));
     }
 
     @ParameterizedTest
     @MethodSource("invalidAmountTransfer")
     public void userCannotTransferInvalidAmountTest(double amount, String errorType) {
-        CreateUserRequest userRequest = CreateUserRequest.builder()
-                .username(RandomData.getUsername())
-                .password(RandomData.getPassword())
-                .role(UserRole.USER.toString())
-                .build();
+        CreateUserRequest userRequest = AdminSteps.createUser();
 
-        new AdminCreateUserRequester(RequestSpecs.adminSpec(), ResponseSpecs.entityWasCreated())
-                .post(userRequest);
-
-        CreateAccountResponse senderAccountResponse = new CreateAccountRequester(RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
+        CreateAccountResponse firstAccountResponse = new ValidatedCrudRequester<CreateAccountResponse>(
+                RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
+                Endpoint.ACCOUNTS,
                 ResponseSpecs.entityWasCreated())
-                .post(null)
-                .extract()
-                .as(CreateAccountResponse.class);
+                .post(null);
 
-        int senderAccountId = senderAccountResponse.getId();
+        int firstAccountId = (int) firstAccountResponse.getId();
 
-        CreateAccountResponse receiverAccountResponse = new CreateAccountRequester(RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
+        CreateAccountResponse secondAccountResponse = new ValidatedCrudRequester<CreateAccountResponse>(
+                RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
+                Endpoint.ACCOUNTS,
                 ResponseSpecs.entityWasCreated())
-                .post(null)
-                .extract()
-                .as(CreateAccountResponse.class);
+                .post(null);
 
-        int receiverAccountId = receiverAccountResponse.getId();
+        int secondAccountId = (int) secondAccountResponse.getId();
 
         double depositAmount = 1000.0;
         MakeDepositRequest depositRequest = MakeDepositRequest.builder()
-                .id(senderAccountId)
+                .id(firstAccountId)
                 .balance(depositAmount)
                 .build();
 
-        new MakeDepositRequester(RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
+        new ValidatedCrudRequester<MakeDepositResponse>(
+                RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
+                Endpoint.DEPOSIT,
                 ResponseSpecs.requestReturnsOK())
                 .post(depositRequest);
 
+        MakeDepositResponse senderAccountBefore = AccountHelper.getAccountById(firstAccountId, userRequest.getUsername(), userRequest.getPassword());
+        MakeDepositResponse receiverAccountBefore = AccountHelper.getAccountById(secondAccountId, userRequest.getUsername(), userRequest.getPassword());
+
         MakeTransactionRequest transactionRequest = MakeTransactionRequest.builder()
-                .senderAccountId(senderAccountId)
-                .receiverAccountId(receiverAccountId)
+                .senderAccountId(firstAccountId)
+                .receiverAccountId(secondAccountId)
                 .amount(amount)
                 .build();
 
-        new MakeTransactionRequester(RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
+        new CrudRequester(RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
+                Endpoint.TRANSFER,
                 ResponseSpecs.requestReturnsBadRequestWithMessage(errorType))
                 .post(transactionRequest);
 
-        double senderBalanceAfter = AccountHelper.getAccountBalance(senderAccountId, userRequest.getUsername(), userRequest.getPassword());
-        double receiverBalanceAfter = AccountHelper.getAccountBalance(receiverAccountId, userRequest.getUsername(), userRequest.getPassword());
+        MakeDepositResponse senderAccountAfter = AccountHelper.getAccountById(firstAccountId, userRequest.getUsername(), userRequest.getPassword());
+        MakeDepositResponse receiverAccountAfter = AccountHelper.getAccountById(secondAccountId, userRequest.getUsername(), userRequest.getPassword());
 
-        softly.assertThat(senderBalanceAfter).isCloseTo(depositAmount, Offset.offset(0.01));
-        softly.assertThat(receiverBalanceAfter).isCloseTo(0.0, Offset.offset(0.01));
+        ModelAssertions.assertThatModels(senderAccountBefore, senderAccountAfter).match();
+        ModelAssertions.assertThatModels(receiverAccountBefore, receiverAccountAfter).match();
     }
 
     public static Stream<Arguments> invalidAmountTransfer() {
@@ -157,39 +224,24 @@ public class MakeTransactionTest extends BaseTest {
 
     @Test
     public void userCanTransferToDifferentAccountTest() {
-        CreateUserRequest senderUserRequest = CreateUserRequest.builder()
-                .username(RandomData.getUsername())
-                .password(RandomData.getPassword())
-                .role(UserRole.USER.toString())
-                .build();
+        CreateUserRequest senderUserRequest = AdminSteps.createUser();
+        CreateUserRequest receiverUserRequest = AdminSteps.createUser();
 
-        new AdminCreateUserRequester(RequestSpecs.adminSpec(), ResponseSpecs.entityWasCreated())
-                .post(senderUserRequest);
-
-        CreateUserRequest receiverUserRequest = CreateUserRequest.builder()
-                .username(RandomData.getUsername())
-                .password(RandomData.getPassword())
-                .role(UserRole.USER.toString())
-                .build();
-
-        new AdminCreateUserRequester(RequestSpecs.adminSpec(), ResponseSpecs.entityWasCreated())
-                .post(receiverUserRequest);
-
-        CreateAccountResponse senderAccountResponse = new CreateAccountRequester(RequestSpecs.authAsUser(senderUserRequest.getUsername(), senderUserRequest.getPassword()),
+        CreateAccountResponse senderAccountResponse = new ValidatedCrudRequester<CreateAccountResponse>(
+                RequestSpecs.authAsUser(senderUserRequest.getUsername(), senderUserRequest.getPassword()),
+                Endpoint.ACCOUNTS,
                 ResponseSpecs.entityWasCreated())
-                .post(null)
-                .extract()
-                .as(CreateAccountResponse.class);
+                .post(null);
 
-        int senderAccountId = senderAccountResponse.getId();
+        int senderAccountId = (int) senderAccountResponse.getId();
 
-        CreateAccountResponse receiverAccountResponse = new CreateAccountRequester(RequestSpecs.authAsUser(receiverUserRequest.getUsername(), receiverUserRequest.getPassword()),
+        CreateAccountResponse receiverAccountResponse = new ValidatedCrudRequester<CreateAccountResponse>(
+                RequestSpecs.authAsUser(receiverUserRequest.getUsername(), receiverUserRequest.getPassword()),
+                Endpoint.ACCOUNTS,
                 ResponseSpecs.entityWasCreated())
-                .post(null)
-                .extract()
-                .as(CreateAccountResponse.class);
+                .post(null);
 
-        int receiverAccountId = receiverAccountResponse.getId();
+        int receiverAccountId = (int) receiverAccountResponse.getId();
 
         double transferAmount = 500.0;
         double depositAmount = transferAmount + 100.0;
@@ -198,9 +250,14 @@ public class MakeTransactionTest extends BaseTest {
                 .balance(depositAmount)
                 .build();
 
-        new MakeDepositRequester(RequestSpecs.authAsUser(senderUserRequest.getUsername(), senderUserRequest.getPassword()),
+        new ValidatedCrudRequester<MakeDepositResponse>(
+                RequestSpecs.authAsUser(senderUserRequest.getUsername(), senderUserRequest.getPassword()),
+                Endpoint.DEPOSIT,
                 ResponseSpecs.requestReturnsOK())
                 .post(depositRequest);
+
+        MakeDepositResponse senderAccountBefore = AccountHelper.getAccountById(senderAccountId, senderUserRequest.getUsername(), senderUserRequest.getPassword());
+        MakeDepositResponse receiverAccountBefore = AccountHelper.getAccountById(receiverAccountId, receiverUserRequest.getUsername(), receiverUserRequest.getPassword());
 
         MakeTransactionRequest transactionRequest = MakeTransactionRequest.builder()
                 .senderAccountId(senderAccountId)
@@ -208,69 +265,80 @@ public class MakeTransactionTest extends BaseTest {
                 .amount(transferAmount)
                 .build();
 
-        new MakeTransactionRequester(RequestSpecs.authAsUser(senderUserRequest.getUsername(), senderUserRequest.getPassword()),
+        new ValidatedCrudRequester<MakeTransactionResponse>(
+                RequestSpecs.authAsUser(senderUserRequest.getUsername(), senderUserRequest.getPassword()),
+                Endpoint.TRANSFER,
                 ResponseSpecs.requestReturnsOK())
                 .post(transactionRequest);
 
-        double senderBalanceAfter = AccountHelper.getAccountBalance(senderAccountId, senderUserRequest.getUsername(), senderUserRequest.getPassword());
-        double receiverBalanceAfter = AccountHelper.getAccountBalance(receiverAccountId, receiverUserRequest.getUsername(), receiverUserRequest.getPassword());
+        MakeDepositResponse senderAccountAfter = AccountHelper.getAccountById(senderAccountId, senderUserRequest.getUsername(), senderUserRequest.getPassword());
+        MakeDepositResponse receiverAccountAfter = AccountHelper.getAccountById(receiverAccountId, receiverUserRequest.getUsername(), receiverUserRequest.getPassword());
 
-        softly.assertThat(senderBalanceAfter).isCloseTo(depositAmount - transferAmount, Offset.offset(0.01));
-        softly.assertThat(receiverBalanceAfter).isCloseTo(transferAmount, Offset.offset(0.01));
+        MakeDepositResponse expectedSenderAccount = MakeDepositResponse.builder()
+                .id(senderAccountId)
+                .balance(senderAccountBefore.getBalance() - transferAmount)
+                .build();
+
+        MakeDepositResponse expectedReceiverAccount = MakeDepositResponse.builder()
+                .id(receiverAccountId)
+                .balance(receiverAccountBefore.getBalance() + transferAmount)
+                .build();
+
+        ModelAssertions.assertThatModels(expectedSenderAccount, senderAccountAfter).match();
+        ModelAssertions.assertThatModels(expectedReceiverAccount, receiverAccountAfter).match();
     }
 
     @Test
     public void userCannotTransferMoreThanAccountBalanceTest() {
-        CreateUserRequest userRequest = CreateUserRequest.builder()
-                .username(RandomData.getUsername())
-                .password(RandomData.getPassword())
-                .role(UserRole.USER.toString())
-                .build();
+        CreateUserRequest userRequest = AdminSteps.createUser();
 
-        new AdminCreateUserRequester(RequestSpecs.adminSpec(), ResponseSpecs.entityWasCreated())
-                .post(userRequest);
-
-        CreateAccountResponse senderAccountResponse = new CreateAccountRequester(RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
+        CreateAccountResponse firstAccountResponse = new ValidatedCrudRequester<CreateAccountResponse>(
+                RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
+                Endpoint.ACCOUNTS,
                 ResponseSpecs.entityWasCreated())
-                .post(null)
-                .extract()
-                .as(CreateAccountResponse.class);
+                .post(null);
 
-        int senderAccountId = senderAccountResponse.getId();
+        int firstAccountId = (int) firstAccountResponse.getId();
 
-        CreateAccountResponse receiverAccountResponse = new CreateAccountRequester(RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
+        CreateAccountResponse secondAccountResponse = new ValidatedCrudRequester<CreateAccountResponse>(
+                RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
+                Endpoint.ACCOUNTS,
                 ResponseSpecs.entityWasCreated())
-                .post(null)
-                .extract()
-                .as(CreateAccountResponse.class);
+                .post(null);
 
-        int receiverAccountId = receiverAccountResponse.getId();
+        int secondAccountId = (int) secondAccountResponse.getId();
 
         double depositAmount = 500.0;
         double transferAmount = depositAmount + 100.0;
         MakeDepositRequest depositRequest = MakeDepositRequest.builder()
-                .id(senderAccountId)
+                .id(firstAccountId)
                 .balance(depositAmount)
                 .build();
 
-        new MakeDepositRequester(RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
+        new ValidatedCrudRequester<MakeDepositResponse>(
+                RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
+                Endpoint.DEPOSIT,
                 ResponseSpecs.requestReturnsOK())
                 .post(depositRequest);
 
+        MakeDepositResponse senderAccountBefore = AccountHelper.getAccountById(firstAccountId, userRequest.getUsername(), userRequest.getPassword());
+        MakeDepositResponse receiverAccountBefore = AccountHelper.getAccountById(secondAccountId, userRequest.getUsername(), userRequest.getPassword());
+
         MakeTransactionRequest transactionRequest = MakeTransactionRequest.builder()
-                .senderAccountId(senderAccountId)
-                .receiverAccountId(receiverAccountId)
+                .senderAccountId(firstAccountId)
+                .receiverAccountId(secondAccountId)
                 .amount(transferAmount)
                 .build();
 
-        new MakeTransactionRequester(RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
+        new CrudRequester(RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
+                Endpoint.TRANSFER,
                 ResponseSpecs.requestReturnsBadRequestWithMessage("Invalid transfer: insufficient funds or invalid accounts"))
                 .post(transactionRequest);
 
-        double senderBalanceAfter = AccountHelper.getAccountBalance(senderAccountId, userRequest.getUsername(), userRequest.getPassword());
-        double receiverBalanceAfter = AccountHelper.getAccountBalance(receiverAccountId, userRequest.getUsername(), userRequest.getPassword());
+        MakeDepositResponse senderAccountAfter = AccountHelper.getAccountById(firstAccountId, userRequest.getUsername(), userRequest.getPassword());
+        MakeDepositResponse receiverAccountAfter = AccountHelper.getAccountById(secondAccountId, userRequest.getUsername(), userRequest.getPassword());
 
-        softly.assertThat(senderBalanceAfter).isCloseTo(depositAmount, Offset.offset(0.01));
-        softly.assertThat(receiverBalanceAfter).isCloseTo(0.0, Offset.offset(0.01));
+        ModelAssertions.assertThatModels(senderAccountBefore, senderAccountAfter).match();
+        ModelAssertions.assertThatModels(receiverAccountBefore, receiverAccountAfter).match();
     }
 }

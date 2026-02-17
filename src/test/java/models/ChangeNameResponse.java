@@ -17,5 +17,5 @@ public class ChangeNameResponse extends BaseModel {
     private String password;
     private String name;
     private String role;
-    private List<Account> accounts;
+    private List<MakeDepositResponse> accounts;
 }
