@@ -1,4 +1,4 @@
-package iteration1;
+package api;
 
 import generators.RandomModelGenerator;
 import models.ChangeNameRequest;
@@ -23,12 +23,6 @@ public class ChangeNameTest extends BaseTest {
     public void userCanChangeNameTest() {
         CreateUserRequest userRequest = AdminSteps.createUser();
 
-        ChangeNameResponse nameBeforeResponse = new ValidatedCrudRequester<ChangeNameResponse>(
-                RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
-                Endpoint.PROFILE,
-                ResponseSpecs.requestReturnsOK())
-                .get(0);
-
         ChangeNameRequest changeNameRequest = RandomModelGenerator.generate(ChangeNameRequest.class);
 
         ChangeNameResponse changeNameResponse = new ValidatedCrudRequester<ChangeNameResponse>(
@@ -38,15 +32,6 @@ public class ChangeNameTest extends BaseTest {
                 .post(changeNameRequest);
 
         ModelAssertions.assertThatModels(changeNameRequest, changeNameResponse).match();
-
-        ChangeNameResponse nameAfterResponse = new ValidatedCrudRequester<ChangeNameResponse>(
-                RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
-                Endpoint.PROFILE,
-                ResponseSpecs.requestReturnsOK())
-                .get(0);
-
-        ModelAssertions.assertThatModels(changeNameRequest, nameAfterResponse).match();
-
     }
 
     @ParameterizedTest

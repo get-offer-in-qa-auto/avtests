@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  selenoid:
+    image: aerokube/selenoid:latest
+    container_name: selenoid
+    ports:
+      - "4444:4444"
+    volumes:
+      - "C:/selenoid:/etc/selenoid"
+      - "C:/selenoid/video:/opt/selenoid/video"
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    networks:
+      - selenoid-network
+    command: ["-conf", "/etc/selenoid/browsers.json", "-video-dir", "/opt/selenoid/video"]
+
+  selenoid-ui:
+    image: aerokube/selenoid-ui:latest
+    container_name: selenoid-ui
+    ports:
+      - "8080:8080"
+    networks:
+      - selenoid-network
+    depends_on:
+      - selenoid
+    command: ["--selenoid-uri", "http://selenoid:4444"]
+
+networks:
+  selenoid-network:
+    driver: bridge
