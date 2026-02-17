@@ -6,7 +6,7 @@ import api.models.CreateUserRequest;
 import api.models.CreateUserResponse;
 import api.requests.steps.AdminSteps;
 import com.codeborne.selenide.Condition;
-import models.comparison.ModelAssertions;
+import api.models.comparison.ModelAssertions;
 import org.junit.jupiter.api.Test;
 import ui.pages.AdminPanel;
 import ui.pages.BankAlert;
@@ -27,7 +27,7 @@ public class CreateUserTest extends BaseUiTest {
 
         new AdminPanel().open().createUser(newUser.getUsername(), newUser.getPassword())
                 .checkAlertMessageAndAccept(BankAlert.USER_CREATED_SUCCESSFULLY.getMessage())
-                .getAllUsers().findBy(Condition.exactText(newUser.getUsername() + "\nUSER")).shouldBe(Condition.visible);
+                .getAllUsers().findBy(Condition.exactText(newUser.getUsername() + AdminPanel.USER_ROLE_SUFFIX)).shouldBe(Condition.visible);
 
         // ШАГ 5: проверка, что юзер создан на API
 
@@ -51,7 +51,7 @@ public class CreateUserTest extends BaseUiTest {
 
         new AdminPanel().open().createUser(newUser.getUsername(), newUser.getPassword())
                 .checkAlertMessageAndAccept(BankAlert.USERNAME_MUST_BE_BETWEEN_3_AND_15_CHARACTERS.getMessage())
-                .getAllUsers().findBy(Condition.exactText(newUser.getUsername() + "\nUSER")).shouldNotBe(Condition.exist);
+                .getAllUsers().findBy(Condition.exactText(newUser.getUsername() + AdminPanel.USER_ROLE_SUFFIX)).shouldNotBe(Condition.exist);
 
         // ШАГ 5: проверка, что юзер НЕ создан на API
 

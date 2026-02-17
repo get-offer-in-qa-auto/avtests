@@ -5,7 +5,7 @@ import api.models.CreateUserResponse;
 import api.specs.RequestSpecs;
 import api.specs.ResponseSpecs;
 import api.generators.RandomModelGenerator;
-import models.comparison.ModelAssertions;
+import api.models.comparison.ModelAssertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;

@@ -8,7 +8,7 @@ import api.requests.steps.AdminSteps;
 import api.specs.RequestSpecs;
 import api.specs.ResponseSpecs;
 import com.codeborne.selenide.Condition;
-import models.ChangeNameResponse;
+import api.models.ChangeNameResponse;
 import org.junit.jupiter.api.Test;
 import ui.pages.BankAlert;
 import ui.pages.EditPanel;
