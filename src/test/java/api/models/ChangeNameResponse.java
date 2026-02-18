@@ -1,6 +1,5 @@
 package api.models;
 
-import api.models.BaseModel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -18,5 +17,5 @@ public class ChangeNameResponse extends BaseModel {
     private String password;
     private String name;
     private String role;
-    private List<models.MakeDepositResponse> accounts;
+    private List<MakeDepositResponse> accounts;
 }

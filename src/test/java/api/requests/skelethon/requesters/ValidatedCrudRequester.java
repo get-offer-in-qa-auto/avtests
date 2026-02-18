@@ -18,7 +18,12 @@ public class ValidatedCrudRequester<T extends BaseModel> extends HttpRequest imp
         this.crudRequester = new CrudRequester(requestSpecification, endpoint, responseSpecification);
     }
 
+    public T post() {
+        return post(null);
+    }
+
     @Override
+    @SuppressWarnings("unchecked")
     public T post(BaseModel model) {
         return (T) crudRequester.post(model).extract().as(endpoint.getResponseModel());
     }
@@ -38,6 +43,7 @@ public class ValidatedCrudRequester<T extends BaseModel> extends HttpRequest imp
         return null;
     }
 
+    @SuppressWarnings("unchecked")
     public List<T> getAll(Class<?> clazz) {
         T[] array = (T[]) crudRequester.getAll(clazz).extract().as(clazz);
         return Arrays.asList(array);

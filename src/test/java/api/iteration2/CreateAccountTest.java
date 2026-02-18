@@ -21,7 +21,7 @@ public class CreateAccountTest extends BaseTest {
                 RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
                 Endpoint.ACCOUNTS,
                 ResponseSpecs.entityWasCreated())
-                .post(null);
+                .post();
 
         CreateAccountResponse accountFromList = AccountHelper.getCreateAccountResponseById(
                 createdAccount.getId(),

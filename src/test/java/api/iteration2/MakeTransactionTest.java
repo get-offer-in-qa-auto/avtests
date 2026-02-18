@@ -32,7 +32,7 @@ public class MakeTransactionTest extends BaseTest {
                 RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
                 Endpoint.ACCOUNTS,
                 ResponseSpecs.entityWasCreated())
-                .post(null);
+                .post();
 
         int firstAccountId = (int) firstAccountResponse.getId();
 
@@ -40,7 +40,7 @@ public class MakeTransactionTest extends BaseTest {
                 RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
                 Endpoint.ACCOUNTS,
                 ResponseSpecs.entityWasCreated())
-                .post(null);
+                .post();
 
         int secondAccountId = (int) secondAccountResponse.getId();
 
@@ -96,7 +96,7 @@ public class MakeTransactionTest extends BaseTest {
                 RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
                 Endpoint.ACCOUNTS,
                 ResponseSpecs.entityWasCreated())
-                .post(null);
+                .post();
 
         int firstAccountId = (int) firstAccountResponse.getId();
 
@@ -104,7 +104,7 @@ public class MakeTransactionTest extends BaseTest {
                 RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
                 Endpoint.ACCOUNTS,
                 ResponseSpecs.entityWasCreated())
-                .post(null);
+                .post();
 
         int secondAccountId = (int) secondAccountResponse.getId();
 
@@ -175,7 +175,7 @@ public class MakeTransactionTest extends BaseTest {
                 RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
                 Endpoint.ACCOUNTS,
                 ResponseSpecs.entityWasCreated())
-                .post(null);
+                .post();
 
         int firstAccountId = (int) firstAccountResponse.getId();
 
@@ -183,7 +183,7 @@ public class MakeTransactionTest extends BaseTest {
                 RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
                 Endpoint.ACCOUNTS,
                 ResponseSpecs.entityWasCreated())
-                .post(null);
+                .post();
 
         int secondAccountId = (int) secondAccountResponse.getId();
 
@@ -236,7 +236,7 @@ public class MakeTransactionTest extends BaseTest {
                 RequestSpecs.authAsUser(senderUserRequest.getUsername(), senderUserRequest.getPassword()),
                 Endpoint.ACCOUNTS,
                 ResponseSpecs.entityWasCreated())
-                .post(null);
+                .post();
 
         int senderAccountId = (int) senderAccountResponse.getId();
 
@@ -244,7 +244,7 @@ public class MakeTransactionTest extends BaseTest {
                 RequestSpecs.authAsUser(receiverUserRequest.getUsername(), receiverUserRequest.getPassword()),
                 Endpoint.ACCOUNTS,
                 ResponseSpecs.entityWasCreated())
-                .post(null);
+                .post();
 
         int receiverAccountId = (int) receiverAccountResponse.getId();
 
@@ -301,7 +301,7 @@ public class MakeTransactionTest extends BaseTest {
                 RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
                 Endpoint.ACCOUNTS,
                 ResponseSpecs.entityWasCreated())
-                .post(null);
+                .post();
 
         int firstAccountId = (int) firstAccountResponse.getId();
 
@@ -309,7 +309,7 @@ public class MakeTransactionTest extends BaseTest {
                 RequestSpecs.authAsUser(userRequest.getUsername(), userRequest.getPassword()),
                 Endpoint.ACCOUNTS,
                 ResponseSpecs.entityWasCreated())
-                .post(null);
+                .post();
 
         int secondAccountId = (int) secondAccountResponse.getId();
 
