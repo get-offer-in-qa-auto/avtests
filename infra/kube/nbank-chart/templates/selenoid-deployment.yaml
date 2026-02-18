@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: selenoid
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: selenoid
+  template:
+    metadata:
+      labels:
+        app: selenoid
+    spec:
+      containers:
+        - name: selenoid
+          image: "{{ .Values.selenoid.image.repository }}:{{ .Values.selenoid.image.tag }}"
+          imagePullPolicy: {{ .Values.imagePullPolicy }}
+          ports:
+            - containerPort: {{ .Values.selenoid.port }}
+          volumeMounts:
+            - name: config
+              mountPath: /etc/selenoid
+              readOnly: true
+      volumes:
+        - name: config
+          configMap:
+            name: selenoid-config

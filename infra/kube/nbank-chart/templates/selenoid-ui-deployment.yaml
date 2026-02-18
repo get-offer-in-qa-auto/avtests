@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: selenoid-ui
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: selenoid-ui
+  template:
+    metadata:
+      labels:
+        app: selenoid-ui
+    spec:
+      containers:
+        - name: selenoid-ui
+          image: "{{ .Values.selenoidUi.image.repository }}:{{ .Values.selenoidUi.image.tag }}"
+          imagePullPolicy: {{ .Values.imagePullPolicy }}
+          ports:
+            - containerPort: {{ .Values.selenoidUi.port }}
+          args:
+            - "--selenoid-uri"
+            - {{ .Values.selenoidUi.selenoidUri | quote }}

@@ -1,0 +1,27 @@
+imagePullPolicy: IfNotPresent
+replicaCount: 1
+
+backend:
+  image:
+    repository: nobugsme/nbank
+    tag: with_validation_fix_with_swagger
+  port: 4111
+
+frontend:
+  image:
+    repository: nobugsme/nbank-ui
+    tag: with_nginx
+  port: 80
+
+selenoid:
+  image:
+    repository: aerokube/selenoid
+    tag: "1.11.3"
+  port: 4444
+
+selenoidUi:
+  image:
+    repository: aerokube/selenoid-ui
+    tag: latest
+  port: 8080
+  selenoidUri: "http://selenoid:4444"
