@@ -1,0 +1,28 @@
+# kube-prometheus-stack: Prometheus + Grafana + exporters
+# Установка: helm upgrade --install monitoring prometheus-community/kube-prometheus-stack -n monitoring --create-namespace -f monitoring-values.yaml --timeout=10m
+
+prometheus:
+  prometheusSpec:
+    serviceMonitorSelector:
+      matchLabels:
+        release: monitoring
+    # Сбор только с сервисов, помеченных release: monitoring
+    podMonitorSelector:
+      matchLabels:
+        release: monitoring
+
+  service:
+    type: NodePort
+    nodePort: 30090
+
+grafana:
+  adminUser: admin
+  adminPassword: admin
+  service:
+    type: NodePort
+    nodePort: 30300
+  # Автоимпорт дашбордов и источников данных
+  defaultDashboardsEnabled: true
+  defaultDashboardsTimezone: browser
+
+# Node exporter и kube-state-metrics включаются по умолчанию

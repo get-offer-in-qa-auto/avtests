@@ -1,0 +1,29 @@
+# ServiceMonitor для сбора метрик Spring Boot приложения (backend).
+# Prometheus опрашивает /actuator/prometheus каждые 15 секунд.
+# Секрет backend-basic-auth создаётся отдельно: kubectl create secret generic backend-basic-auth --from-literal=username=admin --from-literal=password=admin -n monitoring
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: spring-bank-monitor
+  namespace: monitoring
+  labels:
+    release: monitoring
+spec:
+  selector:
+    matchLabels:
+      app: backend
+  namespaceSelector:
+    matchNames:
+      - default
+  endpoints:
+    - port: http
+      path: /actuator/prometheus
+      interval: 15s
+      basicAuth:
+        username:
+          name: backend-basic-auth
+          key: username
+        password:
+          name: backend-basic-auth
+          key: password
